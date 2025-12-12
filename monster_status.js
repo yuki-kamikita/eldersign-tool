@@ -2,7 +2,7 @@
   try {
     /* ---------- Lv / MaxLv ---------- */
     var h3 = document.querySelector('div.card_d header.card h3') || document.querySelector('h3');
-    if (!h3) return alert('レベル情報が見つかりません');
+    if (!h3) return alert('モンスター画面で使用してください');
 
     var mLv = h3.textContent.match(/Lv\s*(\d+)\s*\/\s*(\d+)/i);
     if (!mLv) return alert('Lv/最大Lv形式が見つかりません');
