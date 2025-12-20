@@ -14,6 +14,8 @@ javascript:(()=>{const s=document.createElement("script");s.src="https://yuki-ka
 - Wikiリンクを追加検討中
 - セラエノの影響を調査中
 
+![status](./image/status.png)
+
 ### バザー 検索ボタン
 ```javascript
 javascript:(()=>{const s=document.createElement("script");s.src="https://yuki-kamikita.github.io/eldersign_js/bazaar_search.js?d="+new Date().toISOString().slice(0,10);document.head.appendChild(s);})();
@@ -21,6 +23,8 @@ javascript:(()=>{const s=document.createElement("script");s.src="https://yuki-ka
 - バザー検索条件の変更を楽にする
 - バザー画面で使用可能
 - 初期値がおかしいケースがあることを確認しているけど直す気はあまりない
+
+![bazaar](./image/bazaar.png)
 
 ### バザー 全種族・全グレード検索
 ```javascript
@@ -39,6 +43,8 @@ javascript:(()=>{const s=document.createElement("script");s.src="https://yuki-ka
 - バザー・手持ち・合成・ガチャなどのモンスター一覧画面で使用可能
 - バザーなら1any当たりの経験値効率表示
 - バザーなら経験値効率でソート
+
+![exp](./image/exp.png)
 
 ### Wiki 検索
 ```javascript
