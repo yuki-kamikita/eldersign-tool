@@ -18,37 +18,56 @@
     const level = parseInt(mLv[1], 10);
     const maxLevel = parseInt(mLv[2], 10);
 
-    /* ---------- レアリティ係数 ---------- */
-    const rcMap = { 30: 1.0, 50: 1.5, 70: 2.0, 90: 2.5 };
-    const rc = rcMap[maxLevel] ?? 1.0;
+    /* ---------- レアリティ（定数） ---------- */
+    const RARITY = Object.freeze({
+      BRONZE: "BRONZE",
+      SILVER: "SILVER",
+      GOLD: "GOLD",
+      PLATINUM: "PLATINUM",
+    });
+
+    const rarityByMaxLevel = Object.freeze({
+      30: RARITY.BRONZE,
+      50: RARITY.SILVER,
+      70: RARITY.GOLD,
+      90: RARITY.PLATINUM,
+    });
+    const rarity = rarityByMaxLevel[maxLevel] ?? RARITY.BRONZE;
+
+    const growthCoeffByRarity = Object.freeze({
+      [RARITY.BRONZE]: 1.0,
+      [RARITY.SILVER]: 1.5,
+      [RARITY.GOLD]: 2.0,
+      [RARITY.PLATINUM]: 2.5,
+    });
+    const rc = growthCoeffByRarity[rarity] ?? 1.0;
+
+    const expCoeffByRarity = Object.freeze({
+      [RARITY.BRONZE]: 1,
+      [RARITY.SILVER]: 2,
+      [RARITY.GOLD]: 4,
+      [RARITY.PLATINUM]: 8,
+    });
+    const expRarityFactor = expCoeffByRarity[rarity] ?? 1;
 
     const t = Math.max(0, (level - 1) / (maxLevel - 1));
     const G = 1 + rc * t;
     const sqrtG = Math.sqrt(G);
 
     /* ---------- Lv1逆算 ---------- */
-    // currentTotal: 現在表示値（HPは最大値を使う。攻撃などは単一値）
-    // bonus: 上昇値
-    // isHP: HPかどうか（HPは補正係数が sqrtG）
     function estimateLv1Base(currentTotal, bonus, isHP) {
       if (currentTotal <= 0) return 0;
-
-      // Lv1なら (Lv1基礎 + 上昇値) ≒ 現在値
       if (level <= 1) return Math.max(1, currentTotal - bonus);
 
       const factor = isHP ? sqrtG : G;
       if (!isFinite(factor) || factor <= 0) return Math.max(1, currentTotal - bonus);
 
-      // ★割ってから上昇値を引く（(Lv1+bonus)*factor ≒ currentTotal）
       const approx = currentTotal / factor - bonus;
 
       let best = Math.max(1, Math.floor(approx));
       let bestDiff = Math.abs(Math.floor((best + bonus) * factor) - currentTotal);
-
-      // ★一致候補が複数あるので「最大の一致候補」を採用する
       let maxExact = null;
 
-      // 近傍探索（端数切り捨ての影響を吸収）
       const start = Math.max(1, Math.floor(approx) - 50);
       const end = Math.floor(approx) + 50;
 
@@ -60,34 +79,29 @@
           if (maxExact === null || cand > maxExact) maxExact = cand;
           continue;
         }
-
         if (diff < bestDiff) {
           bestDiff = diff;
           best = cand;
         }
       }
-
-      if (maxExact !== null) return maxExact;
-      return best;
+      return maxExact !== null ? maxExact : best;
     }
 
     /* ---------- ステータス表 ---------- */
-    const cap = Array.from(document.querySelectorAll("div.status table caption")).find(
-      (c) => c.textContent.trim() === "ステータス"
-    );
+    const cap = [...document.querySelectorAll("div.status table caption")]
+      .find(c => c.textContent.trim() === "ステータス");
     if (!cap) {
       alert("モンスター画面で使用してください");
       return;
     }
 
-    const rows = Array.from(cap.closest("table").querySelectorAll("tbody tr"));
+    const rows = [...cap.closest("table").querySelectorAll("tbody tr")];
     const targets = ["HP", "攻撃", "魔力", "防御", "命中", "敏捷"];
 
     const lines = [];
-    let sumSq = 0; // 上昇率(小数)^2 の合計
-    let count = 0; // 評価対象にできた項目数
+    let sumSq = 0, count = 0;
 
-    rows.forEach((tr) => {
+    rows.forEach(tr => {
       const th = tr.querySelector("th");
       if (!th) return;
 
@@ -100,10 +114,9 @@
       const tds = tr.querySelectorAll("td");
       if (tds.length < 2) return;
 
-      const statText = tds[0].textContent.trim();  // HPなら "2086/2086"
-      const bonusText = tds[1].textContent.trim(); // "(+186)" など
+      const statText = tds[0].textContent.trim();
+      const bonusText = tds[1].textContent.trim();
 
-      // ★HPは「最大値」（/の右側）を使用。その他は単一値（左側）
       const parts = statText.split("/");
       const usedPart = isHP && parts.length >= 2 ? parts[1] : parts[0];
       const currentTotal = parseInt(usedPart.replace(/[^\d\-]/g, ""), 10);
@@ -112,39 +125,47 @@
       const m = bonusText.match(/([+-]?\d+)/);
       const bonus = m ? parseInt(m[1], 10) : 0;
 
-      // Lv1基礎を逆算
       const lv1Base = estimateLv1Base(currentTotal, bonus, isHP);
       if (lv1Base <= 0) return;
 
-      // Lv1基準の上昇率（計算は丸めない）
       const pct = (bonus / lv1Base) * 100;
-
-      // 表示だけ小数1桁（表示用）
       const pctStr = (Math.abs(pct) < 10 ? " " : "") + pct.toFixed(1);
 
-      // 表示揃え：基礎値は5桁、上昇値は4桁分の左スペース
       const basePad = " ".repeat(Math.max(0, 5 - String(lv1Base).length));
       const bonusPad = " ".repeat(Math.max(0, 4 - String(bonus).length));
 
       lines.push(`${name}:${basePad}${lv1Base}+${bonusPad}${bonus} (+${pctStr}%)`);
 
-      // 評価値用（%→小数）。ここも丸めない
       const r = pct / 100;
       sumSq += r * r;
       count++;
     });
 
-    lines.push("-----------------------");
-
-    // 評価値（小数1桁で切り捨て）
     let evalValue = 10.0;
     if (count) {
       const raw = Math.sqrt(sumSq / count) * 200 + 10;
       evalValue = Math.floor(raw * 10) / 10;
     }
+
+    const gradeImg = document.querySelector('img[src*="/img/menu/grade_"]');
+    let grade = null;
+    if (gradeImg) {
+      const gm = gradeImg.src.match(/grade_(\d+)\.png/i);
+      if (gm) grade = parseInt(gm[1], 10);
+    }
+
+    lines.push("-----------------------");
     lines.push("評価値: " + evalValue.toFixed(1));
 
-    /* ---------- 右上に表示 ---------- */
+    if (grade != null) {
+      const baseExp = expRarityFactor * grade * ((level + 4) / 5) * 16;
+      const expOther = Math.floor(baseExp);
+      const expSame = Math.floor(baseExp * 1.125);
+      lines.push(`経験値: 異${expOther} / 同${expSame}`);
+    } else {
+      lines.push("経験値: 取得失敗");
+    }
+
     const box = document.createElement("div");
     box.style.cssText =
       "position:fixed;top:10px;right:10px;z-index:99999;" +
