@@ -1,1 +1,0 @@
-javascript:(()=>{const s=(window.getSelection?.().toString()??"").trim();const k=(s||prompt("AtWiki検索する文字を入力","")||"").trim();if(!k)return;window.open("https://w.atwiki.jp/eldersign/?cmd=wikisearch&andor=and&keyword="+encodeURIComponent(k),"_blank","noopener,noreferrer")})()
