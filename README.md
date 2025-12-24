@@ -87,6 +87,14 @@ javascript:(()=>{const s=document.createElement("script");s.src="https://yuki-ka
 - Wikiの検索結果画面で使用可能
 - PCでWiki検索の隣に置いて連打する想定
 
+### ランクマッチ プレイヤー別対戦表
+```javascript
+javascript:(()=>{const s=document.createElement("script");s.src="https://yuki-kamikita.github.io/eldersign_js/rankmatch.js";document.head.appendChild(s);})();
+```
+- ランクマッチの対戦表の下にプレイヤー別の対戦結果/予定を表示
+- ランクマッチ画面で使用可能
+- アルファベットタップでその人の対戦表にジャンプ
+
 # 使い方
 ## PC
 - `javascript:(()=>`から始まる一行のスクリプトをコピー
