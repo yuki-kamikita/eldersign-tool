@@ -103,11 +103,12 @@ javascript:(()=>{const s=document.createElement("script");s.src="https://yuki-ka
 - 戦闘結果共有などに
 - 現状htmlだけダウンロードしているので、本家が消えたらcssが壊れますが、軽い方がいいかなと
 
-### スクリーンショット(全体/分割)
+### 長いスクリーンショット
 ```javascript
 javascript:(()=>{const s=document.createElement("script");s.src="https://yuki-kamikita.github.io/eldersign_js/screenshot.js";document.head.appendChild(s);})();
 ```
 - 長いページを画面外含めて撮影してPNG保存
+- 戦闘結果共有などに
 - ある程度のところでページ分け
 - 外部ライブラリ(html2canvas)を利用
 

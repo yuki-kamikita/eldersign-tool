@@ -1,5 +1,6 @@
 (() => {
   const maxHeight = 3000;
+  const overlapHeight = 32;
   const scriptId = "html2canvas-lib";
   const loadHtml2Canvas = () =>
     new Promise((resolve, reject) => {
@@ -94,6 +95,9 @@
 
     const root = document.documentElement;
     const totalWidth = Math.max(root.scrollWidth, document.body.scrollWidth);
+    const totalHeight = Math.max(root.scrollHeight, document.body.scrollHeight);
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
     const title = sanitize(document.title);
     const now = new Date();
     const stamp = [
@@ -108,34 +112,37 @@
 
     let offsetY = 0;
     let index = 1;
-    while (true) {
-      const currentTotalHeight = Math.max(
-        root.scrollHeight,
-        document.body.scrollHeight,
-      );
-      const remaining = currentTotalHeight - offsetY;
-      if (remaining <= 0) break;
-      const height = Math.min(maxHeight, remaining);
+    while (offsetY < totalHeight) {
+      let remaining = totalHeight - offsetY;
+      let height = Math.min(maxHeight, remaining);
+      if (remaining > maxHeight && remaining <= maxHeight + overlapHeight) {
+        offsetY = totalHeight - maxHeight;
+        remaining = totalHeight - offsetY;
+        height = Math.min(maxHeight, remaining);
+      }
       // html2canvas の viewport をずらして部分キャプチャする
       const canvas = await window.html2canvas(document.body, {
         useCORS: true,
         backgroundColor: null,
         width: totalWidth,
         height,
-        windowWidth: totalWidth,
-        windowHeight: height,
+        windowWidth: viewportWidth,
+        windowHeight: viewportHeight,
         x: 0,
         y: offsetY,
-        scrollY: -offsetY,
+        scrollX: 0,
+        scrollY: 0,
       });
-      if (isFullyTransparent(canvas)) {
+      if (!isFullyTransparent(canvas)) {
+        const croppedCanvas = cropTransparent(canvas);
+        const filename = `${title}_${stamp}_part${String(index).padStart(2, "0")}.png`;
+        downloadCanvas(croppedCanvas, filename);
+        index += 1;
+      }
+      if (remaining <= maxHeight) {
         break;
       }
-      const croppedCanvas = cropTransparent(canvas);
-      const filename = `${title}_${stamp}_part${String(index).padStart(2, "0")}.png`;
-      downloadCanvas(croppedCanvas, filename);
-      offsetY += height;
-      index += 1;
+      offsetY += Math.max(1, height - overlapHeight);
     }
   };
 
