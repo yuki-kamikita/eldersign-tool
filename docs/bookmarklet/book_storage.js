@@ -1,24 +1,8 @@
 (() => {
-  const PANEL_ID = "__es_book_expand_panel";
   const ACTION_PANEL_ID = "__es_book_action_panel";
-  const PER_PAGE = 10;
   const REQUEST_DELAY_MS = 500;
 
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-  const buildPanel = () => {
-    document.getElementById(PANEL_ID)?.remove();
-    const panel = document.createElement("div");
-    panel.id = PANEL_ID;
-    panel.style.cssText =
-      "position:fixed;top:10px;right:10px;z-index:99999;" +
-      "background:rgba(0,0,0,.8);color:#fff;padding:10px 12px;" +
-      "border-radius:8px;font-family:monospace;font-size:12px;" +
-      "max-width:calc(100% - 20px);";
-    panel.textContent = "準備中...";
-    document.body.appendChild(panel);
-    return panel;
-  };
 
   const buildActionPanel = () => {
     document.getElementById(ACTION_PANEL_ID)?.remove();
@@ -59,38 +43,13 @@
     const style = document.createElement("style");
     style.id = "__es_book_select_style";
     style.textContent =
-      ".es-book-item{position:relative;padding-left:34px;}" +
-      ".es-book-check{position:absolute;left:10px;top:18px;}" +
-      ".es-book-item.is-selected{outline:2px solid #00d1b2;outline-offset:-2px;}" +
-      ".es-book-item a{cursor:pointer;}";
+      ".es-book-item{position:relative;padding-left:40px;}" +
+      ".es-book-check{position:absolute;left:12px;top:50%;transform:translateY(-50%);}" +
+      ".es-book-item a{cursor:pointer;display:block;border-radius:12px;}" +
+      ".es-book-item.is-selected a{" +
+      "box-shadow:0 0 0 2px #f3e6c1 inset,0 0 0 4px rgba(81,51,18,.8);" +
+      "}";
     document.head.appendChild(style);
-  };
-
-  const parseOwnedCount = () => {
-    const footer = document.querySelector("footer p");
-    if (!footer) return null;
-    const match = footer.textContent.match(/全\s*(\d+)\s*\/\s*\d+\s*枚/);
-    if (!match) return null;
-    const value = parseInt(match[1], 10);
-    return Number.isNaN(value) ? null : value;
-  };
-
-  const getCurrentPage = () => {
-    const on = document.querySelector("nav.pager li.on a");
-    const value = on ? parseInt(on.textContent, 10) : 1;
-    return Number.isNaN(value) ? 1 : value;
-  };
-
-  const buildPageUrl = (pageNumber) => {
-    const url = new URL(location.href);
-    url.searchParams.set("pg", String(pageNumber - 1));
-    return url.toString();
-  };
-
-  const extractListItems = (html) => {
-    const doc = new DOMParser().parseFromString(html, "text/html");
-    const items = doc.querySelectorAll("nav.block ul li");
-    return Array.from(items);
   };
 
   const parseMidFromHref = (href) => {
@@ -207,73 +166,7 @@
       : "完了";
   };
 
-  const expandBookList = async () => {
-    if (document.body.dataset.esBookExpanded === "1") {
-      alert("すでに取得済みです。ページを再読み込みしてから実行してください。");
-      return;
-    }
-
-    const list = document.querySelector("nav.block ul");
-    if (!list) {
-      alert("ブック一覧が見つかりません。ブック画面で実行してください。");
-      return;
-    }
-
-    const currentPage = getCurrentPage();
-    if (currentPage !== 1) {
-      alert("1ページ目で実行してください。");
-      return;
-    }
-
-    const ownedCount = parseOwnedCount();
-    if (!ownedCount) {
-      alert("枚数の取得に失敗しました。");
-      return;
-    }
-
-    const totalPages = Math.ceil(ownedCount / PER_PAGE);
-    const panel = buildPanel();
-    if (totalPages <= 1) {
-      panel.textContent = "追加ページはありません。";
-      setTimeout(() => panel.remove(), 2000);
-      return;
-    }
-
-    const errors = [];
-    const fragment = document.createDocumentFragment();
-
-    for (let page = 2; page <= totalPages; page += 1) {
-      panel.textContent = `取得中 ${page - 1}/${totalPages - 1} ページ`;
-      try {
-        const url = buildPageUrl(page);
-        const response = await fetch(url, { credentials: "include" });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const html = await response.text();
-        const items = extractListItems(html);
-        if (!items.length) {
-          throw new Error("一覧が取得できませんでした");
-        }
-        items.forEach((item) => fragment.appendChild(document.importNode(item, true)));
-      } catch (err) {
-        errors.push(`${page}ページ目: ${err.message}`);
-      }
-      await sleep(REQUEST_DELAY_MS);
-    }
-
-    list.appendChild(fragment);
-    document.body.dataset.esBookExpanded = "1";
-
-    if (errors.length) {
-      panel.textContent = `完了: ${totalPages - 1}ページ / エラー: ${errors.length}`;
-      console.warn("取得エラー", errors);
-    } else {
-      panel.textContent = "完了";
-    }
-    setTimeout(() => panel.remove(), 5000);
-  };
-
   const init = async () => {
-    await expandBookList();
     const list = document.querySelector("nav.block ul");
     if (!list) return;
     const { storeButton, bookButton, status } = buildActionPanel();
