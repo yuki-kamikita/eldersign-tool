@@ -1,0 +1,852 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+  <title>スキル継承・発現率計算ツール</title>
+  <link rel="stylesheet" href="../theme.css" />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=delete"
+  />
+  <style>
+    .tool-grid {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .input-row {
+      display: grid;
+      gap: 8px;
+    }
+
+    .input-row label {
+      font-weight: 600;
+    }
+
+    .input-row input,
+    .input-row select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--md-sys-outline-variant);
+      background: var(--md-sys-surface);
+      color: var(--md-sys-on-surface);
+      font-size: 0.95rem;
+    }
+
+    .repeat-group {
+      display: grid;
+      gap: 10px;
+    }
+
+    .repeat-row {
+      display: grid;
+      grid-template-columns: 1fr 90px auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .repeat-row input,
+    .repeat-row select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--md-sys-outline-variant);
+      background: var(--md-sys-surface);
+      color: var(--md-sys-on-surface);
+      font-size: 0.95rem;
+    }
+
+    .repeat-row button {
+      height: 42px;
+      width: 42px;
+      padding: 0;
+      border-radius: 12px;
+      border: 1px solid var(--md-sys-outline-variant);
+      background: transparent;
+      color: var(--md-sys-on-surface);
+      cursor: pointer;
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .repeat-row button.icon-button {
+      border: none;
+    }
+
+    .material-symbols-outlined {
+      font-family: "Material Symbols Outlined";
+      font-variation-settings: "FILL" 0, "wght" 500, "GRAD" 0, "opsz" 20;
+      font-size: 20px;
+      line-height: 1;
+      display: inline-block;
+    }
+
+    .repeat-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .repeat-actions button {
+      width: 100%;
+      height: 42px;
+      padding: 0 14px;
+      border-radius: 12px;
+      border: 1px dashed var(--md-sys-outline);
+      background: var(--md-sys-surface);
+      color: var(--md-sys-on-surface-variant);
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .toggle-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .toggle-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--md-sys-outline-variant);
+      background: var(--md-sys-surface);
+    }
+
+    .toggle-item input {
+      width: 18px;
+      height: 18px;
+    }
+
+    .result-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .result-card {
+      display: grid;
+      gap: 6px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: var(--md-sys-surface);
+      border: 1px solid var(--md-sys-outline-variant);
+    }
+
+    .card.no-hover:hover {
+      transform: none;
+      box-shadow: 0 10px 25px var(--md-sys-shadow);
+    }
+
+    .result-label {
+      color: var(--md-sys-on-surface-variant);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .result-value {
+      font-size: 1.6rem;
+      font-weight: 700;
+    }
+
+    .result-meta {
+      font-size: 0.9rem;
+      color: var(--md-sys-on-surface-variant);
+    }
+
+    .result-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .result-item {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--md-sys-outline-variant);
+      background: var(--md-sys-surface-variant);
+      display: grid;
+      gap: 4px;
+    }
+
+    .result-item-title {
+      font-weight: 600;
+    }
+
+    .result-item-meta {
+      font-size: 0.85rem;
+      color: var(--md-sys-on-surface-variant);
+    }
+
+    .note-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    .note-table th,
+    .note-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--md-sys-outline-variant);
+      text-align: center;
+    }
+
+    .note-table th {
+      color: var(--md-sys-on-surface-variant);
+      font-weight: 600;
+    }
+
+    .table-title {
+      margin: 12px 0 6px;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .hint {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--md-sys-on-surface-variant);
+      line-height: 1.6;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <header class="reveal">
+      <p class="subtitle">Elder Sign Toolkit</p>
+      <h1>スキル継承・発現率計算</h1>
+      <p class="subtitle">
+        素材スキルLvやファミリー差、各種補正を入れて継承率と潜在発現率を算出します。
+      </p>
+      <div class="nav-links">
+        <a class="button secondary" href="../index.html">ツール集へ戻る</a>
+      </div>
+    </header>
+
+    <section class="reveal">
+      <div class="section-title">
+        <h2>補正</h2>
+        <span>共通の加算値</span>
+      </div>
+      <article class="card no-hover">
+        <div class="form-grid">
+          <div class="toggle-grid">
+            <label class="toggle-item">
+              <input id="bonus-silver" type="checkbox" checked />
+              <span>シルバー会員 (+5%)</span>
+            </label>
+            <label class="toggle-item">
+              <input id="bonus-boost" type="checkbox" checked />
+              <span>スキルブースト (+20%)</span>
+            </label>
+            <label class="toggle-item">
+              <input id="bonus-lamp" type="checkbox" />
+              <span>アルハザードのランプ (+45%)</span>
+            </label>
+          </div>
+          <p class="hint">合計補正は継承率/潜在発現率どちらにも加算されます。</p>
+        </div>
+      </article>
+    </section>
+
+    <section class="reveal">
+      <div class="section-title">
+        <h2>継承</h2>
+        <span>入力と結果を並列表示</span>
+      </div>
+      <div class="tool-grid">
+        <article class="card no-hover">
+          <h3>継承入力</h3>
+          <div class="form-grid">
+            <div class="input-row">
+              <label for="family-match">継承先ファミリー</label>
+              <select id="family-match">
+                <option value="same">同ファミリー</option>
+                <option value="diff">異ファミリー</option>
+              </select>
+            </div>
+            <div class="input-row">
+              <label for="rarity">素材原種の枠</label>
+              <select id="rarity">
+                <option value="bronze">ブロンズ</option>
+                <option value="silver" selected>シルバー</option>
+                <option value="gold">ゴールド以上</option>
+              </select>
+            </div>
+            <div class="input-row">
+              <label>通常スキルLv</label>
+              <div class="repeat-group" id="normal-skill-list"></div>
+              <div class="repeat-actions">
+                <button type="button" id="normal-skill-add">+ 追加</button>
+              </div>
+            </div>
+            <div class="input-row">
+              <label>潜在スキルLv</label>
+              <div class="repeat-group" id="latent-skill-list"></div>
+              <div class="repeat-actions">
+                <button type="button" id="latent-skill-add">+ 追加</button>
+              </div>
+            </div>
+          </div>
+        </article>
+        <article class="card no-hover">
+          <h3>スキル継承率</h3>
+          <div class="result-grid">
+            <div class="result-card">
+              <div class="result-label">通常スキル</div>
+              <ul class="result-list" id="normal-result-list"></ul>
+            </div>
+            <div class="result-card">
+              <div class="result-label">潜在スキル</div>
+              <ul class="result-list" id="latent-result-list"></ul>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="reveal">
+      <div class="section-title">
+        <h2>潜在</h2>
+        <span>入力と結果を並列表示</span>
+      </div>
+      <div class="tool-grid">
+        <article class="card no-hover">
+          <h3>潜在入力</h3>
+          <div class="form-grid">
+            <div class="input-row">
+              <label for="current-lv">素材の現Lv</label>
+              <input id="current-lv" type="number" min="0" step="1" placeholder="例: 42" />
+            </div>
+            <div class="input-row">
+              <label for="max-lv">素材の最高Lv</label>
+              <select id="max-lv">
+                <option value="30">30</option>
+                <option value="50" selected>50</option>
+                <option value="70">70</option>
+                <option value="90">90</option>
+              </select>
+            </div>
+          </div>
+        </article>
+        <article class="card no-hover">
+          <h3>潜在スキル発現率</h3>
+          <div class="result-grid">
+            <div class="result-card">
+              <div class="result-label">発現率</div>
+              <div class="result-value" id="appearance-total">-</div>
+              <div class="result-meta" id="appearance-meta">-</div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+
+      <section class="reveal">
+        <div class="section-title">
+          <h2>早見表</h2>
+          <span>100%に到達する目安</span>
+        </div>
+        <div class="tool-grid">
+
+          <article class="card no-hover">
+            <h3>継承最大値目安</h3>
+            <p class="hint">100%になるスキルレベル、またはLv10時の継承率</p>
+            <div class="table-title">通常スキル</div>
+            <table class="note-table">
+              <thead>
+                <tr>
+                  <th>枠</th>
+                  <th>一般</th>
+                  <th>シルバー+スキブ</th>
+                  <th>全乗せ</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>銅(同)</td>
+                  <td>Lv10(100%)</td>
+                  <td>Lv8(100%)</td>
+                  <td>Lv3(100%)</td>
+                </tr>
+                <tr>
+                  <td>銀(同)</td>
+                  <td>Lv10(97.0%)</td>
+                  <td>Lv8(100%)</td>
+                  <td>Lv3(100%)</td>
+                </tr>
+                <tr>
+                  <td>金(同)</td>
+                  <td>Lv10(95.0%)</td>
+                  <td>Lv8(100%)</td>
+                  <td>Lv4(100%)</td>
+                </tr>
+                <tr>
+                  <td>銅(異)</td>
+                  <td>Lv10(95.0%)</td>
+                  <td>Lv8(100%)</td>
+                  <td>Lv3(100%)</td>
+                </tr>
+                <tr>
+                  <td>銀(異)</td>
+                  <td>Lv10(92.0%)</td>
+                  <td>Lv9(100%)</td>
+                  <td>Lv4(100%)</td>
+                </tr>
+                <tr>
+                  <td>金(異)</td>
+                  <td>Lv10(90.0%)</td>
+                  <td>Lv9(100%)</td>
+                  <td>Lv4(100%)</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="table-title">潜在スキル</div>
+            <table class="note-table">
+              <thead>
+                <tr>
+                  <th>枠</th>
+                  <th>一般</th>
+                  <th>シルバー+スキブ</th>
+                  <th>全乗せ</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>銅(同)</td>
+                  <td>Lv10(65.0%)</td>
+                  <td>Lv10(90.0%)</td>
+                  <td>Lv5(100%)</td>
+                </tr>
+                <tr>
+                  <td>銀(同)</td>
+                  <td>Lv10(62.0%)</td>
+                  <td>Lv10(87.0%)</td>
+                  <td>Lv5(100%)</td>
+                </tr>
+                <tr>
+                  <td>金(同)</td>
+                  <td>Lv10(60.0%)</td>
+                  <td>Lv10(85.0%)</td>
+                  <td>Lv5(100%)</td>
+                </tr>
+                <tr>
+                  <td>銅(異)</td>
+                  <td>Lv10(55.0%)</td>
+                  <td>Lv10(80.0%)</td>
+                  <td>Lv5(100%)</td>
+                </tr>
+                <tr>
+                  <td>銀(異)</td>
+                  <td>Lv10(52.0%)</td>
+                  <td>Lv10(77.0%)</td>
+                  <td>Lv6(100%)</td>
+                </tr>
+                <tr>
+                  <td>金(異)</td>
+                  <td>Lv10(50.0%)</td>
+                  <td>Lv10(75.0%)</td>
+                  <td>Lv6(100%)</td>
+                </tr>
+              </tbody>
+            </table>
+          </article>
+          <article class="card no-hover">
+            <h3>潜在100%目安</h3>
+            <p class="hint">銅=最高Lv30 / 銀=最高Lv50 / 金=最高Lv70</p>
+            <table class="note-table">
+              <thead>
+                <tr>
+                  <th>枠</th>
+                  <th>一般</th>
+                  <th>シルバー+スキブ</th>
+                  <th>全乗せ</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>銅</td>
+                  <td>29</td>
+                  <td>21</td>
+                  <td>8</td>
+                </tr>
+                <tr>
+                  <td>銀</td>
+                  <td>49</td>
+                  <td>37</td>
+                  <td>14</td>
+                </tr>
+                <tr>
+                  <td>金</td>
+                  <td>70</td>
+                  <td>53</td>
+                  <td>21</td>
+                </tr>
+              </tbody>
+            </table>
+          </article>
+        </div>
+      </section>
+
+    <footer>小数点第二位以下切り捨てで算出しています。</footer>
+  </main>
+
+  <script>
+    (() => {
+      const STORAGE_KEY = "eldersign_skill_inherit_bonus";
+      const inputs = {
+        familyMatch: document.getElementById("family-match"),
+        rarity: document.getElementById("rarity"),
+        normalSkillList: document.getElementById("normal-skill-list"),
+        normalSkillAdd: document.getElementById("normal-skill-add"),
+        latentSkillList: document.getElementById("latent-skill-list"),
+        latentSkillAdd: document.getElementById("latent-skill-add"),
+        currentLv: document.getElementById("current-lv"),
+        maxLv: document.getElementById("max-lv"),
+        bonusSilver: document.getElementById("bonus-silver"),
+        bonusBoost: document.getElementById("bonus-boost"),
+        bonusLamp: document.getElementById("bonus-lamp"),
+      };
+
+      const outputs = {
+        normalList: document.getElementById("normal-result-list"),
+        latentList: document.getElementById("latent-result-list"),
+        appearanceTotal: document.getElementById("appearance-total"),
+        appearanceMeta: document.getElementById("appearance-meta"),
+      };
+
+      function readNumber(input) {
+        const value = Number(input.value);
+        return Number.isFinite(value) ? value : 0;
+      }
+
+      function truncate1(value) {
+        return Math.trunc(value * 10) / 10;
+      }
+
+      function buildSkillSelect(value) {
+        const select = document.createElement("select");
+        for (let i = 1; i <= 10; i += 1) {
+          const opt = document.createElement("option");
+          opt.value = String(i);
+          opt.textContent = String(i);
+          select.appendChild(opt);
+        }
+        if (value != null) select.value = String(value);
+        return select;
+      }
+
+      function createSkillRow(initialValue, nameValue) {
+        const row = document.createElement("div");
+        row.className = "repeat-row";
+        const nameInput = document.createElement("input");
+        nameInput.type = "text";
+        nameInput.placeholder = "スキル名";
+        if (nameValue) nameInput.value = nameValue;
+        const select = buildSkillSelect(initialValue ?? 1);
+        row.appendChild(nameInput);
+        row.appendChild(select);
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "icon-button";
+        remove.setAttribute("aria-label", "削除");
+        const icon = document.createElement("span");
+        icon.className = "material-symbols-outlined";
+        icon.textContent = "delete";
+        remove.appendChild(icon);
+        row.appendChild(remove);
+        return { row, nameInput, select, remove };
+      }
+
+      function appendSkillRow(container, initialValue, nameValue) {
+        const { row, nameInput, select, remove } = createSkillRow(initialValue, nameValue);
+        container.appendChild(row);
+        nameInput.addEventListener("input", updateResult);
+        select.addEventListener("change", updateResult);
+        remove.addEventListener("click", () => {
+          row.remove();
+          ensureMinRow(container);
+          updateResult();
+        });
+        return row;
+      }
+
+      function ensureMinRow() {
+        return;
+      }
+
+      function getSkillEntries(container) {
+        const entries = [];
+        container.querySelectorAll(".repeat-row").forEach((row) => {
+          const nameInput = row.querySelector("input");
+          const select = row.querySelector("select");
+          if (!select) return;
+          const lv = parseInt(select.value, 10);
+          if (!Number.isFinite(lv)) return;
+          const name = nameInput ? nameInput.value.trim() : "";
+          entries.push({ level: lv, name });
+        });
+        return entries;
+      }
+
+      function calcAlpha(rarity) {
+        switch (rarity) {
+          case "bronze":
+            return 5;
+          case "silver":
+            return 2;
+          default:
+            return 0;
+        }
+      }
+
+      function calcBonus() {
+        let bonus = 0;
+        if (inputs.bonusSilver.checked) bonus += 5;
+        if (inputs.bonusBoost.checked) bonus += 20;
+        if (inputs.bonusLamp.checked) bonus += 45;
+        return bonus;
+      }
+
+      function loadBonusSettings() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return;
+          const parsed = JSON.parse(raw);
+          if (typeof parsed !== "object" || parsed == null) return;
+          if (typeof parsed.silver === "boolean") {
+            inputs.bonusSilver.checked = parsed.silver;
+          }
+          if (typeof parsed.boost === "boolean") {
+            inputs.bonusBoost.checked = parsed.boost;
+          }
+          if (typeof parsed.lamp === "boolean") {
+            inputs.bonusLamp.checked = parsed.lamp;
+          }
+        } catch (e) {
+          return;
+        }
+      }
+
+      function parseBooleanParam(value) {
+        if (value == null) return null;
+        if (value === "1" || value === "true") return true;
+        if (value === "0" || value === "false") return false;
+        return null;
+      }
+
+      function parseNameList(value) {
+        if (!value) return [];
+        return value
+          .split(",")
+          .map((name) => name.trim())
+          .filter((name) => name.length > 0);
+      }
+
+      function setSelectValue(select, value) {
+        if (!select || value == null) return;
+        const strValue = String(value);
+        const hasOption = [...select.options].some((opt) => opt.value === strValue);
+        if (hasOption) select.value = strValue;
+      }
+
+      function setSkillList(container, entries) {
+        container.innerHTML = "";
+        const list = entries.length > 0 ? entries : [{ level: 1, name: "" }];
+        list.forEach((entry, index) => {
+          appendSkillRow(container, entry.level, entry.name);
+        });
+      }
+
+      function applyParams(params) {
+        if (!params) return;
+
+        const family = params.get("family");
+        if (family === "same" || family === "diff") {
+          inputs.familyMatch.value = family;
+        }
+
+        setSelectValue(inputs.rarity, params.get("rarity"));
+
+        const allNames = parseNameList(params.get("skill_name") ?? "");
+        const normalNames = parseNameList(params.get("normal_name") ?? "");
+        const latentNames = parseNameList(params.get("latent_name") ?? "");
+        const normalNameList = normalNames.length > 0 ? normalNames : allNames;
+        const latentNameList = latentNames.length > 0 ? latentNames : allNames;
+
+        const normalParam = params.get("normal_lv") ?? "";
+        const normalValues = normalParam
+          .split(",")
+          .map((value) => parseInt(value, 10))
+          .filter((value) => Number.isFinite(value))
+          .map((value) => Math.max(1, Math.min(10, value)));
+        const normalCount = Math.max(normalValues.length, normalNameList.length, 1);
+        const normalEntries = Array.from({ length: normalCount }, (_, i) => ({
+          level: normalValues[i] ?? 1,
+          name: normalNameList[i] ?? "",
+        }));
+        setSkillList(inputs.normalSkillList, normalEntries);
+
+        const latentParam = params.get("latent_lv") ?? "";
+        const latentValues = latentParam
+          .split(",")
+          .map((value) => parseInt(value, 10))
+          .filter((value) => Number.isFinite(value))
+          .map((value) => Math.max(1, Math.min(10, value)));
+        const latentCount = Math.max(latentValues.length, latentNameList.length, 1);
+        const latentEntries = Array.from({ length: latentCount }, (_, i) => ({
+          level: latentValues[i] ?? 1,
+          name: latentNameList[i] ?? "",
+        }));
+        setSkillList(inputs.latentSkillList, latentEntries);
+
+        const currentLv = parseInt(params.get("current_lv"), 10);
+        if (Number.isFinite(currentLv)) inputs.currentLv.value = String(currentLv);
+
+        const maxLv = parseInt(params.get("max_lv"), 10);
+        if (Number.isFinite(maxLv)) setSelectValue(inputs.maxLv, maxLv);
+
+        const silver = parseBooleanParam(params.get("bonus_silver"));
+        if (silver != null) inputs.bonusSilver.checked = silver;
+
+        const boost = parseBooleanParam(params.get("bonus_boost"));
+        if (boost != null) inputs.bonusBoost.checked = boost;
+
+        const lamp = parseBooleanParam(params.get("bonus_lamp"));
+        if (lamp != null) inputs.bonusLamp.checked = lamp;
+      }
+
+      function saveBonusSettings() {
+        const payload = {
+          silver: inputs.bonusSilver.checked,
+          boost: inputs.bonusBoost.checked,
+          lamp: inputs.bonusLamp.checked,
+        };
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+        } catch (e) {
+          return;
+        }
+      }
+
+      function calcInheritBase(isSameFamily, isLatent, skillLv, alpha) {
+        if (skillLv <= 0) return null;
+        if (isSameFamily) {
+          return (isLatent ? 6 : 9.5) * skillLv + alpha;
+        }
+        return (isLatent ? 5 : 9) * skillLv + alpha;
+      }
+
+      function formatRate(value) {
+        if (value == null) return "-";
+        return `${value.toFixed(1)}%`;
+      }
+
+      function renderSkillResults(listEl, entries, baseCoeff, alpha, bonus, isSameFamily, isLatent) {
+        listEl.innerHTML = "";
+        if (entries.length === 0) {
+          const li = document.createElement("li");
+          li.className = "result-item";
+          li.textContent = "スキルLvを追加してください。";
+          listEl.appendChild(li);
+          return;
+        }
+
+        entries.forEach((entry) => {
+          const lv = entry.level;
+          const base = calcInheritBase(isSameFamily, isLatent, lv, alpha);
+          const total =
+            base == null ? null : Math.min(100, Math.max(0, truncate1(base + bonus)));
+          const li = document.createElement("li");
+          li.className = "result-item";
+          const title = document.createElement("div");
+          title.className = "result-item-title";
+          const name = entry.name;
+          const label = name ? `${name} Lv${lv}` : `Lv${lv}`;
+          title.textContent = `${label}: ${formatRate(total)}`;
+          const meta = document.createElement("div");
+          meta.className = "result-item-meta";
+          const lvValue = truncate1(lv * baseCoeff).toFixed(1);
+          meta.textContent = `スキルLv ${lvValue}% + レアリティ ${alpha}% + 補正 ${truncate1(bonus).toFixed(1)}%`;
+          li.appendChild(title);
+          li.appendChild(meta);
+          listEl.appendChild(li);
+        });
+      }
+
+      function updateResult() {
+        const isSameFamily = inputs.familyMatch.value === "same";
+        const alpha = calcAlpha(inputs.rarity.value);
+        const bonus = calcBonus();
+        const normalEntries = getSkillEntries(inputs.normalSkillList);
+        const latentEntries = getSkillEntries(inputs.latentSkillList);
+
+        renderSkillResults(outputs.normalList, normalEntries, 9.5, alpha, bonus, isSameFamily, false);
+        renderSkillResults(outputs.latentList, latentEntries, 6, alpha, bonus, isSameFamily, true);
+
+        const currentLv = readNumber(inputs.currentLv);
+        const maxLv = readNumber(inputs.maxLv);
+        let appearanceBase = null;
+        let appearanceLevel = null;
+        if (maxLv > 0) {
+          appearanceLevel = (currentLv / maxLv) * 100;
+          appearanceBase = appearanceLevel + alpha;
+        }
+
+        const appearanceTotal =
+          appearanceBase == null
+            ? null
+            : Math.min(100, Math.max(0, truncate1(appearanceBase + bonus)));
+
+        outputs.appearanceTotal.textContent = formatRate(appearanceTotal);
+        outputs.appearanceMeta.textContent =
+          appearanceBase == null
+            ? "現Lv/最高Lvを入力してください。"
+            : `レベル ${truncate1(appearanceLevel).toFixed(1)}% + レアリティ ${alpha}% + 補正 ${truncate1(bonus).toFixed(1)}%`;
+      }
+
+      [inputs.familyMatch, inputs.rarity, inputs.currentLv, inputs.maxLv].forEach((input) => {
+        input.addEventListener("input", updateResult);
+        input.addEventListener("change", updateResult);
+      });
+
+      [inputs.bonusSilver, inputs.bonusBoost, inputs.bonusLamp].forEach((input) => {
+        input.addEventListener("change", saveBonusSettings);
+      });
+
+      inputs.normalSkillAdd.addEventListener("click", () => {
+        appendSkillRow(inputs.normalSkillList, 1, "");
+        updateResult();
+      });
+
+      inputs.latentSkillAdd.addEventListener("click", () => {
+        appendSkillRow(inputs.latentSkillList, 1, "");
+        updateResult();
+      });
+
+      setSkillList(inputs.normalSkillList, [{ level: 1, name: "" }]);
+      setSkillList(inputs.latentSkillList, [{ level: 1, name: "" }]);
+      loadBonusSettings();
+      applyParams(new URLSearchParams(window.location.search));
+      updateResult();
+    })();
+  </script>
+</body>
+
+</html>
