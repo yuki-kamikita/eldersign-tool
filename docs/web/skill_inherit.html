@@ -18,6 +18,10 @@
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     }
 
+    html {
+      color-scheme: light dark;
+    }
+
     .form-grid {
       display: grid;
       gap: 12px;
@@ -41,6 +45,137 @@
       background: var(--md-sys-surface);
       color: var(--md-sys-on-surface);
       font-size: 0.95rem;
+      color-scheme: light dark;
+    }
+
+    .chip-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .level-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .level-row > input[type="number"] {
+      width: 80px;
+      max-width: 100%;
+      flex: 0 0 auto;
+    }
+
+    .level-row .chip-group {
+      flex: 1 1 auto;
+    }
+
+    .chip-divider {
+      font-weight: 600;
+      color: var(--md-sys-on-surface-variant);
+    }
+
+    .chip-button {
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      border: 1px solid var(--md-sys-outline-variant);
+      background: var(--md-sys-surface);
+      color: var(--md-sys-on-surface-variant);
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    .chip-button.is-active {
+      background: color-mix(in srgb, var(--md-sys-primary-container) 70%, var(--md-sys-surface));
+      color: var(--md-sys-on-primary-container);
+      border-color: transparent;
+      box-shadow: 0 6px 12px color-mix(in srgb, var(--md-sys-shadow) 60%, transparent);
+    }
+
+    .chip-button[data-value="bronze"] {
+      background: var(--md-sys-surface);
+      color: var(--md-sys-on-surface-variant);
+      border-color: #4e8d7c;
+    }
+
+    .chip-button[data-value="silver"] {
+      background: var(--md-sys-surface);
+      color: var(--md-sys-on-surface-variant);
+      border-color: #c7cdd3;
+    }
+
+    .chip-button[data-value="gold"] {
+      background: var(--md-sys-surface);
+      color: var(--md-sys-on-surface-variant);
+      border-color: #d9b348;
+    }
+
+    .chip-button[data-value="30"] {
+      background: var(--md-sys-surface);
+      color: var(--md-sys-on-surface-variant);
+      border-color: #4e8d7c;
+    }
+
+    .chip-button[data-value="50"] {
+      background: var(--md-sys-surface);
+      color: var(--md-sys-on-surface-variant);
+      border-color: #c7cdd3;
+    }
+
+    .chip-button[data-value="70"] {
+      background: var(--md-sys-surface);
+      color: var(--md-sys-on-surface-variant);
+      border-color: #d9b348;
+    }
+
+    .chip-button[data-value="90"] {
+      background: var(--md-sys-surface);
+      color: var(--md-sys-on-surface-variant);
+      border-color: #e089c1;
+    }
+
+    .chip-button.is-active[data-value="bronze"] {
+      background: color-mix(in srgb, #4e8d7c 70%, var(--md-sys-surface));
+      color: #04100c;
+      box-shadow: 0 0 0 1px color-mix(in srgb, #4e8d7c 70%, transparent);
+    }
+
+    .chip-button.is-active[data-value="silver"] {
+      background: color-mix(in srgb, #c7cdd3 70%, var(--md-sys-surface));
+      color: #0b0f12;
+      box-shadow: 0 0 0 1px color-mix(in srgb, #c7cdd3 70%, transparent);
+    }
+
+    .chip-button.is-active[data-value="gold"] {
+      background: color-mix(in srgb, #d9b348 70%, var(--md-sys-surface));
+      color: #1a1200;
+      box-shadow: 0 0 0 1px color-mix(in srgb, #d9b348 70%, transparent);
+    }
+
+    .chip-button.is-active[data-value="30"] {
+      background: color-mix(in srgb, #4e8d7c 70%, var(--md-sys-surface));
+      color: #04100c;
+      box-shadow: 0 0 0 1px color-mix(in srgb, #4e8d7c 70%, transparent);
+    }
+
+    .chip-button.is-active[data-value="50"] {
+      background: color-mix(in srgb, #c7cdd3 70%, var(--md-sys-surface));
+      color: #0b0f12;
+      box-shadow: 0 0 0 1px color-mix(in srgb, #c7cdd3 70%, transparent);
+    }
+
+    .chip-button.is-active[data-value="70"] {
+      background: color-mix(in srgb, #d9b348 70%, var(--md-sys-surface));
+      color: #1a1200;
+      box-shadow: 0 0 0 1px color-mix(in srgb, #d9b348 70%, transparent);
+    }
+
+    .chip-button.is-active[data-value="90"] {
+      background: color-mix(in srgb, #e089c1 70%, var(--md-sys-surface));
+      color: #1a0012;
+      box-shadow: 0 0 0 1px color-mix(in srgb, #e089c1 70%, transparent);
     }
 
     .repeat-group {
@@ -209,6 +344,12 @@
       font-weight: 600;
     }
 
+    .note-table tr.is-active td,
+    .note-table tr.is-active th {
+      background: color-mix(in srgb, var(--md-sys-primary-container) 70%, transparent);
+      color: var(--md-sys-on-primary-container);
+    }
+
     .table-title {
       margin: 12px 0 6px;
       font-size: 1rem;
@@ -273,19 +414,31 @@
           <h3>継承入力</h3>
           <div class="form-grid">
             <div class="input-row">
-              <label for="family-match">継承先ファミリー</label>
-              <select id="family-match">
-                <option value="same">同ファミリー</option>
-                <option value="diff">異ファミリー</option>
-              </select>
+              <label>継承先ファミリー</label>
+              <input type="hidden" id="family-match" value="same" />
+              <div class="chip-group" data-chip-target="family-match">
+                <button type="button" class="chip-button is-active" data-value="same">
+                  同ファミリー
+                </button>
+                <button type="button" class="chip-button" data-value="diff">
+                  異ファミリー
+                </button>
+              </div>
             </div>
             <div class="input-row">
-              <label for="rarity">素材原種の枠</label>
-              <select id="rarity">
-                <option value="bronze">ブロンズ</option>
-                <option value="silver" selected>シルバー</option>
-                <option value="gold">ゴールド以上</option>
-              </select>
+              <label>素材原種の枠</label>
+              <input type="hidden" id="rarity" value="silver" />
+              <div class="chip-group" data-chip-target="rarity">
+                <button type="button" class="chip-button" data-value="bronze">
+                  ブロンズ
+                </button>
+                <button type="button" class="chip-button is-active" data-value="silver">
+                  シルバー
+                </button>
+                <button type="button" class="chip-button" data-value="gold">
+                  ゴールド以上
+                </button>
+              </div>
             </div>
             <div class="input-row">
               <label>通常スキルLv</label>
@@ -329,17 +482,18 @@
           <h3>潜在入力</h3>
           <div class="form-grid">
             <div class="input-row">
-              <label for="current-lv">素材の現Lv</label>
-              <input id="current-lv" type="number" min="0" step="1" placeholder="例: 42" />
-            </div>
-            <div class="input-row">
-              <label for="max-lv">素材の最高Lv</label>
-              <select id="max-lv">
-                <option value="30">30</option>
-                <option value="50" selected>50</option>
-                <option value="70">70</option>
-                <option value="90">90</option>
-              </select>
+              <label for="current-lv">素材の現Lv / 最高Lv</label>
+              <div class="level-row">
+                <input id="current-lv" type="number" min="0" step="1" placeholder="現Lv" />
+                <span class="chip-divider">/</span>
+                <input type="hidden" id="max-lv" value="50" />
+                <div class="chip-group" data-chip-target="max-lv">
+                  <button type="button" class="chip-button" data-value="30">30</button>
+                  <button type="button" class="chip-button is-active" data-value="50">50</button>
+                  <button type="button" class="chip-button" data-value="70">70</button>
+                  <button type="button" class="chip-button" data-value="90">90</button>
+                </div>
+              </div>
             </div>
           </div>
         </article>
@@ -368,7 +522,7 @@
             <h3>継承最大値目安</h3>
             <p class="hint">100%になるスキルレベル、またはLv10時の継承率</p>
             <div class="table-title">通常スキル</div>
-            <table class="note-table">
+            <table class="note-table" data-table="inherit">
               <thead>
                 <tr>
                   <th>枠</th>
@@ -418,7 +572,7 @@
             </table>
 
             <div class="table-title">潜在スキル</div>
-            <table class="note-table">
+            <table class="note-table" data-table="inherit">
               <thead>
                 <tr>
                   <th>枠</th>
@@ -470,7 +624,7 @@
           <article class="card no-hover">
             <h3>潜在100%目安</h3>
             <p class="hint">銅=最高Lv30 / 銀=最高Lv50 / 金=最高Lv70</p>
-            <table class="note-table">
+            <table class="note-table" data-table="appearance">
               <thead>
                 <tr>
                   <th>枠</th>
@@ -497,6 +651,12 @@
                   <td>70</td>
                   <td>53</td>
                   <td>21</td>
+                </tr>
+                <tr>
+                  <td>白金</td>
+                  <td>90</td>
+                  <td>68</td>
+                  <td>27</td>
                 </tr>
               </tbody>
             </table>
@@ -659,6 +819,17 @@
           .filter((name) => name.length > 0);
       }
 
+      function setChipValue(input, value) {
+        if (!input || value == null) return;
+        input.value = value;
+        const group = document.querySelector(`.chip-group[data-chip-target="${input.id}"]`);
+        if (!group) return;
+        group.querySelectorAll(".chip-button").forEach((button) => {
+          const isActive = button.dataset.value === value;
+          button.classList.toggle("is-active", isActive);
+        });
+      }
+
       function setSelectValue(select, value) {
         if (!select || value == null) return;
         const strValue = String(value);
@@ -666,12 +837,12 @@
         if (hasOption) select.value = strValue;
       }
 
-      function setSkillList(container, entries) {
-        container.innerHTML = "";
-        const list = entries.length > 0 ? entries : [{ level: 1, name: "" }];
-        list.forEach((entry, index) => {
-          appendSkillRow(container, entry.level, entry.name);
-        });
+    function setSkillList(container, entries) {
+      container.innerHTML = "";
+      const list = entries.length > 0 ? entries : [{ level: 1, name: "" }];
+      list.forEach((entry, index) => {
+        appendSkillRow(container, entry.level, entry.name);
+      });
       }
 
       function applyParams(params) {
@@ -679,10 +850,11 @@
 
         const family = params.get("family");
         if (family === "same" || family === "diff") {
-          inputs.familyMatch.value = family;
+          setChipValue(inputs.familyMatch, family);
         }
 
-        setSelectValue(inputs.rarity, params.get("rarity"));
+        const rarityParam = params.get("rarity");
+        if (rarityParam) setChipValue(inputs.rarity, rarityParam);
 
         const allNames = parseNameList(params.get("skill_name") ?? "");
         const normalNames = parseNameList(params.get("normal_name") ?? "");
@@ -720,7 +892,7 @@
         if (Number.isFinite(currentLv)) inputs.currentLv.value = String(currentLv);
 
         const maxLv = parseInt(params.get("max_lv"), 10);
-        if (Number.isFinite(maxLv)) setSelectValue(inputs.maxLv, maxLv);
+        if (Number.isFinite(maxLv)) setChipValue(inputs.maxLv, maxLv);
 
         const silver = parseBooleanParam(params.get("bonus_silver"));
         if (silver != null) inputs.bonusSilver.checked = silver;
@@ -790,12 +962,36 @@
         });
       }
 
-      function updateResult() {
-        const isSameFamily = inputs.familyMatch.value === "same";
-        const alpha = calcAlpha(inputs.rarity.value);
-        const bonus = calcBonus();
-        const normalEntries = getSkillEntries(inputs.normalSkillList);
-        const latentEntries = getSkillEntries(inputs.latentSkillList);
+    function updateResult() {
+      const isSameFamily = inputs.familyMatch.value === "same";
+      const alpha = calcAlpha(inputs.rarity.value);
+      const bonus = calcBonus();
+      const rarityLabelMap = {
+        bronze: "銅",
+        silver: "銀",
+        gold: "金",
+      };
+      const selectedLabel = rarityLabelMap[inputs.rarity.value];
+      const maxLvLabelMap = {
+        30: "銅",
+        50: "銀",
+        70: "金",
+        90: "プラチナ",
+      };
+      const maxLvLabel = maxLvLabelMap[Number(readNumber(inputs.maxLv))] || "";
+      document.querySelectorAll("table.note-table tbody tr").forEach((row) => {
+        const table = row.closest("table.note-table");
+        const tableType = table ? table.dataset.table : "";
+        const labelCell = row.querySelector("td");
+        const label = labelCell ? labelCell.textContent.trim() : "";
+        const targetLabel = tableType === "appearance" ? maxLvLabel : selectedLabel;
+        const isMatch =
+          label === targetLabel ||
+          (targetLabel && (label.startsWith(`${targetLabel}(`) || label.startsWith(targetLabel)));
+        row.classList.toggle("is-active", isMatch);
+      });
+      const normalEntries = getSkillEntries(inputs.normalSkillList);
+      const latentEntries = getSkillEntries(inputs.latentSkillList);
 
         renderSkillResults(outputs.normalList, normalEntries, 9.5, alpha, bonus, isSameFamily, false);
         renderSkillResults(outputs.latentList, latentEntries, 6, alpha, bonus, isSameFamily, true);
@@ -821,9 +1017,22 @@
             : `レベル ${truncate1(appearanceLevel).toFixed(1)}% + レアリティ ${alpha}% + 補正 ${truncate1(bonus).toFixed(1)}%`;
       }
 
-      [inputs.familyMatch, inputs.rarity, inputs.currentLv, inputs.maxLv].forEach((input) => {
+      [inputs.currentLv].forEach((input) => {
         input.addEventListener("input", updateResult);
         input.addEventListener("change", updateResult);
+      });
+
+      document.querySelectorAll(".chip-group").forEach((group) => {
+        group.addEventListener("click", (event) => {
+          const button = event.target.closest(".chip-button");
+          if (!button || !group.contains(button)) return;
+          const targetId = group.dataset.chipTarget;
+          if (!targetId) return;
+          const input = document.getElementById(targetId);
+          if (!input) return;
+          setChipValue(input, button.dataset.value);
+          updateResult();
+        });
       });
 
       [inputs.bonusSilver, inputs.bonusBoost, inputs.bonusLamp].forEach((input) => {
@@ -833,7 +1042,7 @@
         };
         input.addEventListener("input", handler);
         input.addEventListener("click", handler);
-        input.addEventListener("change", saveBonusSettings);
+        input.addEventListener("change", handler);
       });
 
       inputs.normalSkillAdd.addEventListener("click", () => {
@@ -849,6 +1058,9 @@
       setSkillList(inputs.normalSkillList, [{ level: 1, name: "" }]);
       setSkillList(inputs.latentSkillList, [{ level: 1, name: "" }]);
       loadBonusSettings();
+      setChipValue(inputs.familyMatch, inputs.familyMatch.value);
+      setChipValue(inputs.rarity, inputs.rarity.value);
+      setChipValue(inputs.maxLv, inputs.maxLv.value);
       applyParams(new URLSearchParams(window.location.search));
       updateResult();
     })();
