@@ -1,7 +1,7 @@
 (function () {
   const TOOL_URL =
-    "http://localhost:8080/docs/web/party_record.html";
-    // "https://yuki-kamikita.github.io/eldersign-tool/web/party_record.html";
+    // "http://localhost:8080/docs/web/party_record.html";
+    "https://yuki-kamikita.github.io/eldersign-tool/web/party_record.html";
   const SKILL_LIMIT = 5;
 
   function normalizeText(text) {
