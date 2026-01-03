@@ -25,16 +25,18 @@
     const storeButton = makeButton("保管する");
     const bookButton = makeButton("ブックへ");
     const selectAllButton = makeButton("全選択");
+    const selectUnprotectedButton = makeButton("保護以外選択");
     const status = document.createElement("span");
     status.textContent = "選択待ち";
 
     panel.appendChild(selectAllButton);
-    panel.appendChild(storeButton);
+    panel.appendChild(selectUnprotectedButton);
     panel.appendChild(bookButton);
+    panel.appendChild(storeButton);
     panel.appendChild(status);
     document.body.appendChild(panel);
 
-    return { panel, storeButton, bookButton, selectAllButton, status };
+    return { panel, storeButton, bookButton, selectAllButton, selectUnprotectedButton, status };
   };
 
   const injectStyles = () => {
@@ -126,9 +128,24 @@
       .filter(Boolean);
   };
 
-  const setAllSelections = (checked, status) => {
+  const getItemFlags = (li) => {
+    const icon = li.querySelector("img.i");
+    if (!icon) return { isOnSale: false, isProtected: false };
+    const src = icon.getAttribute("src") || "";
+    return {
+      isOnSale: src.includes("card_b"),
+      isProtected: src.includes("card_l"),
+    };
+  };
+
+  const setAllSelections = (checked, status, options = {}) => {
+    const { skipOnSale = false, skipProtected = false } = options;
     const items = document.querySelectorAll("li.es-book-item");
     items.forEach((li) => {
+      if (checked && (skipOnSale || skipProtected)) {
+        const { isOnSale, isProtected } = getItemFlags(li);
+        if ((skipOnSale && isOnSale) || (skipProtected && isProtected)) return;
+      }
       const checkbox = li.querySelector("input.es-book-check");
       if (!checkbox) return;
       checkbox.checked = checked;
@@ -154,15 +171,33 @@
     }
 
     let errors = 0;
+    let shouldStop = false;
+    let lastErrorMessage = "";
     for (let i = 0; i < selections.length; i += 1) {
+      if (shouldStop) break;
       status.textContent = `送信中 ${i + 1}/${selections.length}`;
       const { mid, li } = selections[i];
       try {
         const url = buildMoveUrl(cmd, mid);
         const response = await fetch(url, { credentials: "include" });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        li.remove();
-        updateSelectedCount(status);
+        const html = await response.text();
+        const doc = new DOMParser().parseFromString(html, "text/html");
+        const errArticle = doc.querySelector("article.err");
+        if (errArticle) {
+          errors += 1;
+          const message =
+            errArticle.querySelector("p")?.textContent?.trim() ||
+            "移動できませんでした。";
+          status.textContent = message;
+          lastErrorMessage = message;
+          if (message.includes("一杯です")) {
+            shouldStop = true;
+          }
+        } else {
+          li.remove();
+          updateSelectedCount(status);
+        }
       } catch (err) {
         errors += 1;
         console.warn("移動エラー", mid, err);
@@ -170,15 +205,29 @@
       await sleep(REQUEST_DELAY_MS);
     }
 
-    status.textContent = errors
-      ? `完了(エラー:${errors})`
-      : "完了";
+    if (errors && lastErrorMessage) {
+      status.textContent = lastErrorMessage;
+    } else {
+      status.textContent = errors
+        ? `完了(エラー:${errors})`
+        : "完了";
+    }
   };
 
   const init = async () => {
     const list = document.querySelector("nav.block ul");
     if (!list) return;
-    const { storeButton, bookButton, selectAllButton, status } = buildActionPanel();
+    const { storeButton, bookButton, selectAllButton, selectUnprotectedButton, status } =
+      buildActionPanel();
+    const heading = document.querySelector("h1");
+    const headingText = heading ? heading.textContent.trim() : "";
+    const isStoragePage = headingText === "保管庫";
+    const isBookPage = headingText === "ブック";
+    if (isStoragePage) {
+      storeButton.style.display = "none";
+    } else if (isBookPage) {
+      bookButton.style.display = "none";
+    }
     let nextSelectAll = true;
     setupSelectableList(list, status);
     updateSelectedCount(status);
@@ -186,13 +235,16 @@
     bookButton.addEventListener("click", () => runMove("a2", status));
     selectAllButton.addEventListener("click", () => {
       if (nextSelectAll) {
-        setAllSelections(true, status);
+        setAllSelections(true, status, { skipOnSale: true });
         selectAllButton.textContent = "全削除";
       } else {
         setAllSelections(false, status);
         selectAllButton.textContent = "全選択";
       }
       nextSelectAll = !nextSelectAll;
+    });
+    selectUnprotectedButton.addEventListener("click", () => {
+      setAllSelections(true, status, { skipOnSale: true, skipProtected: true });
     });
   };
 
