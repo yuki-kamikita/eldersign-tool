@@ -20,37 +20,39 @@
         margin-bottom: 16px;
       }
 
-      .tool-buttons {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
-      }
-
-      .party-switch {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
-      }
-
-      .party-switch label {
-        font-weight: 600;
-        font-size: 0.9rem;
-      }
-
-      .party-switch select {
-        padding: 8px 12px;
-        border-radius: 999px;
-        border: 1px solid var(--md-sys-outline-variant);
-        background: var(--md-sys-surface);
-        color: var(--md-sys-on-surface);
-        font-size: 0.95rem;
-      }
-
       .status-text {
         font-size: 0.9rem;
         color: var(--md-sys-on-surface-variant);
+      }
+
+      .party-list {
+        display: grid;
+        gap: 24px;
+      }
+
+      .party-section {
+        display: grid;
+        gap: 12px;
+      }
+
+      .party-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .party-title {
+        margin: 0;
+        font-size: 1.1rem;
+      }
+
+      .party-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
       }
 
       .party-grid {
@@ -342,20 +344,9 @@
           <span>1PT=4枠</span>
         </div>
         <div class="tool-actions">
-          <div class="party-switch">
-            <label for="party-select">PT切り替え</label>
-            <select id="party-select"></select>
-          </div>
-        <div class="tool-buttons">
-          <button class="button secondary" type="button" id="share-button">共有URLをコピー</button>
-          <button class="button secondary" type="button" id="export-json">JSONエクスポート</button>
-          <button class="button secondary" type="button" id="import-json">JSONインポート</button>
-          <button class="button secondary" type="button" id="add-slot">枠を追加</button>
-          <button class="button secondary" type="button" id="clear-all">このPTを全消去</button>
-        </div>
           <div class="status-text" id="status-text">保存は自動です</div>
         </div>
-        <div class="party-grid" id="party-grid"></div>
+        <div class="party-list" id="party-list"></div>
       </section>
     </main>
 
@@ -409,6 +400,22 @@
       </article>
     </template>
 
+    <template id="party-template">
+      <section class="party-section">
+        <div class="party-header">
+          <h3 class="party-title">PT</h3>
+          <div class="party-actions">
+            <button class="button secondary" type="button" data-action="share">共有URLをコピー</button>
+            <button class="button secondary" type="button" data-action="export">JSONエクスポート</button>
+            <button class="button secondary" type="button" data-action="import">JSONインポート</button>
+            <button class="button secondary" type="button" data-action="add">+ 枠を追加</button>
+            <button class="button secondary" type="button" data-action="clear">このPTを全消去</button>
+          </div>
+        </div>
+        <div class="party-grid"></div>
+      </section>
+    </template>
+
     <script>
       (() => {
         const DEFAULT_SLOT_COUNT = 4;
@@ -417,15 +424,10 @@
         const STORAGE_KEY = "eldersign_party_record_v2";
         const LEGACY_KEY = "eldersign_party_record_v1";
 
-        const grid = document.getElementById("party-grid");
+        const partyList = document.getElementById("party-list");
+        const partyTemplate = document.getElementById("party-template");
         const template = document.getElementById("slot-template");
-        const clearAllButton = document.getElementById("clear-all");
         const statusText = document.getElementById("status-text");
-        const partySelect = document.getElementById("party-select");
-        const shareButton = document.getElementById("share-button");
-        const exportJsonButton = document.getElementById("export-json");
-        const importJsonButton = document.getElementById("import-json");
-        const addSlotButton = document.getElementById("add-slot");
         const toast = document.getElementById("toast");
         const toastMessage = document.getElementById("toast-message");
         const toastUndo = document.getElementById("toast-undo");
@@ -536,6 +538,7 @@
           type: null,
           slotIndex: null,
           skillIndex: null,
+          partyId: null,
         };
 
         const store = loadStore();
@@ -547,10 +550,8 @@
         };
         const clampParty = (partyId) =>
           Math.min(PARTY_COUNT, Math.max(1, Number.parseInt(partyId, 10) || 1));
-        let activeParty = clampParty(store.activeParty);
-        ensureParty(activeParty);
-        store.activeParty = activeParty;
-        const slotRefs = [];
+        store.activeParty = clampParty(store.activeParty);
+        const slotRefs = {};
 
         const updatePreview = (ref, entry) => {
           if (!ref || !ref.preview) return;
@@ -565,7 +566,7 @@
           }
         };
 
-        const getActiveEntries = () => ensureParty(activeParty);
+        const getPartyEntries = (partyId) => ensureParty(partyId);
 
         const renderSlot = (ref, entry, index) => {
           if (!ref || !entry) return;
@@ -582,8 +583,8 @@
         const isEntryEmpty = (entry) =>
           !entry.name && !entry.imageUrl && entry.skills.every((skill) => !skill);
 
-        const resolveSlot = (requestedSlot) => {
-          const entries = getActiveEntries();
+        const resolveSlot = (partyId, requestedSlot) => {
+          const entries = getPartyEntries(partyId);
           if (Number.isFinite(requestedSlot) && requestedSlot >= 0) {
             while (entries.length <= requestedSlot) {
               entries.push(defaultEntry());
@@ -632,10 +633,8 @@
 
         const applyIncoming = (incoming) => {
           if (!incoming) return;
-          if (incoming.requestedParty) {
-            setActiveParty(incoming.requestedParty, false);
-          }
-          const slotIndex = resolveSlot(incoming.requestedSlot);
+          const targetParty = incoming.requestedParty || 1;
+          const slotIndex = resolveSlot(targetParty, incoming.requestedSlot);
           if (slotIndex === null) {
             setStatus("空き枠がありません。手動で入れ替えてください。");
             return;
@@ -644,11 +643,11 @@
           entry.name = incoming.name;
           entry.imageUrl = incoming.imageUrl;
           entry.skills = Array.from({ length: SKILL_COUNT }, (_, index) => incoming.skills[index] || "");
-          const entries = getActiveEntries();
+          const entries = getPartyEntries(targetParty);
           entries[slotIndex] = entry;
           saveStore(store);
           renderAll();
-          setStatus(`PT${activeParty}に追加しました`);
+          setStatus(`PT${targetParty}に追加しました`);
           if (history.replaceState) {
             history.replaceState(null, "", window.location.pathname);
           }
@@ -657,7 +656,8 @@
         const handleInput = (event) => {
           const input = event.target;
           const slotIndex = Number.parseInt(input.dataset.slot, 10);
-          const entries = getActiveEntries();
+          const partyId = clampParty(input.dataset.party);
+          const entries = getPartyEntries(partyId);
           if (!Number.isFinite(slotIndex) || !entries[slotIndex]) return;
 
           const entry = entries[slotIndex];
@@ -680,18 +680,18 @@
           saveStore(store);
         };
 
-        const clearSlot = (index) => {
-          const entries = getActiveEntries();
+        const clearSlot = (partyId, index) => {
+          const entries = getPartyEntries(partyId);
           const removed = entries.splice(index, 1)[0];
           if (entries.length === 0) {
             entries.push(defaultEntry());
           }
           saveStore(store);
           renderAll();
-          setStatus(`PT${activeParty}の枠を削除しました`);
+          setStatus(`PT${partyId}の枠を削除しました`);
           if (removed) {
             showToast("枠を削除しました", () => {
-              const restoreEntries = getActiveEntries();
+              const restoreEntries = getPartyEntries(partyId);
               const insertIndex = Math.min(index, restoreEntries.length);
               restoreEntries.splice(insertIndex, 0, removed);
               saveStore(store);
@@ -701,25 +701,25 @@
           }
         };
 
-        const clearAll = () => {
-          const confirmed = window.confirm("このPTの内容を消去します。よろしいですか？");
+        const clearAll = (partyId) => {
+          const confirmed = window.confirm(`PT${partyId}の内容を消去します。よろしいですか？`);
           if (!confirmed) return;
-          const entries = getActiveEntries();
+          const entries = getPartyEntries(partyId);
           entries.length = 0;
           for (let i = 0; i < DEFAULT_SLOT_COUNT; i += 1) {
             entries.push(defaultEntry());
           }
           saveStore(store);
-          setStatus(`PT${activeParty}を消去しました`);
+          setStatus(`PT${partyId}を消去しました`);
           renderAll();
         };
 
-        const addSlot = () => {
-          const entries = getActiveEntries();
+        const addSlot = (partyId) => {
+          const entries = getPartyEntries(partyId);
           entries.push(defaultEntry());
           saveStore(store);
           renderAll();
-          setStatus(`PT${activeParty}に枠を追加しました`);
+          setStatus(`PT${partyId}に枠を追加しました`);
         };
 
         const serializeEntry = (entry) => ({
@@ -728,9 +728,9 @@
           skills: Array.from({ length: SKILL_COUNT }, (_, index) => entry.skills[index] || ""),
         });
 
-        const buildSharePayload = () => ({
-          party: activeParty,
-          entries: getActiveEntries().map((entry) => serializeEntry(entry)),
+        const buildSharePayload = (partyId) => ({
+          party: partyId,
+          entries: getPartyEntries(partyId).map((entry) => serializeEntry(entry)),
         });
 
         const encodeSharePayload = (payload) => {
@@ -744,20 +744,16 @@
           return JSON.parse(decoded);
         };
 
-        const applySharePayload = (payload) => {
+        const applySharePayload = (payload, partyId) => {
           if (!payload || !Array.isArray(payload.entries)) {
             throw new Error("共有データの形式が不正です");
           }
-          const targetParty = activeParty;
-          const confirmed = window.confirm(`表示中のPT${targetParty}に共有データを読み込みます。上書きしますか？`);
+          const targetParty = clampParty(partyId || payload.party || 1);
+          const confirmed = window.confirm(`PT${targetParty}に共有データを読み込みます。上書きしますか？`);
           if (!confirmed) return false;
           const entries = buildParty(payload.entries);
           store.parties[targetParty] = entries;
-          if (targetParty !== activeParty) {
-            setActiveParty(targetParty, false);
-          } else {
-            renderAll();
-          }
+          renderAll();
           saveStore(store);
           setStatus(`PT${targetParty}に共有データを読み込みました`);
           return true;
@@ -775,55 +771,48 @@
           }
         };
 
-        const setActiveParty = (partyId, announce = true) => {
-          const nextParty = clampParty(partyId);
-          if (nextParty === activeParty) return;
-          activeParty = nextParty;
-          ensureParty(activeParty);
-          store.activeParty = activeParty;
-          saveStore(store);
-          renderAll();
-          partySelect.value = String(activeParty);
-          if (announce) setStatus(`PT${activeParty}に切り替えました`);
-        };
-
-        const openImageEditor = (index) => {
-          const ref = slotRefs[index];
+        const openImageEditor = (partyId, index) => {
+          const ref = slotRefs[partyId] ? slotRefs[partyId][index] : null;
           if (!ref) return;
           ref.card.classList.add("is-editing");
           ref.imageInput.focus();
           ref.imageInput.select();
         };
 
-        const closeImageEditor = (index) => {
-          const ref = slotRefs[index];
+        const closeImageEditor = (partyId, index) => {
+          const ref = slotRefs[partyId] ? slotRefs[partyId][index] : null;
           if (!ref) return;
           ref.card.classList.remove("is-editing");
         };
 
-        const swapSlots = (fromIndex, toIndex) => {
-          if (fromIndex === toIndex) return;
-          const entries = getActiveEntries();
-          const temp = entries[fromIndex];
-          entries[fromIndex] = entries[toIndex];
-          entries[toIndex] = temp;
+        const swapSlots = (fromPartyId, fromIndex, toPartyId, toIndex) => {
+          if (fromPartyId === toPartyId && fromIndex === toIndex) return;
+          const fromEntries = getPartyEntries(fromPartyId);
+          const toEntries = getPartyEntries(toPartyId);
+          const temp = fromEntries[fromIndex];
+          fromEntries[fromIndex] = toEntries[toIndex];
+          toEntries[toIndex] = temp;
           saveStore(store);
           renderAll();
-          setStatus(`PT${activeParty}の枠を入れ替えました`);
+          if (fromPartyId === toPartyId) {
+            setStatus(`PT${fromPartyId}の枠を入れ替えました`);
+          } else {
+            setStatus(`PT${fromPartyId}とPT${toPartyId}の枠を入れ替えました`);
+          }
         };
 
-        const swapSkills = (slotIndex, fromIndex, toIndex) => {
+        const swapSkills = (partyId, slotIndex, fromIndex, toIndex) => {
           if (fromIndex === toIndex) return;
-          const entries = getActiveEntries();
+          const entries = getPartyEntries(partyId);
           const entry = entries[slotIndex];
           if (!entry) return;
           const temp = entry.skills[fromIndex];
           entry.skills[fromIndex] = entry.skills[toIndex];
           entry.skills[toIndex] = temp;
           saveStore(store);
-          const ref = slotRefs[slotIndex];
+          const ref = slotRefs[partyId] ? slotRefs[partyId][slotIndex] : null;
           if (ref) renderSlot(ref, entry, slotIndex);
-          setStatus(`PT${activeParty}の枠${slotIndex + 1}でスキルを入れ替えました`);
+          setStatus(`PT${partyId}の枠${slotIndex + 1}でスキルを入れ替えました`);
         };
 
         const clearDragTarget = () => {
@@ -836,6 +825,7 @@
           dragState.type = null;
           dragState.slotIndex = null;
           dragState.skillIndex = null;
+          dragState.partyId = null;
           clearDragTarget();
         };
 
@@ -844,7 +834,7 @@
           event.stopPropagation();
         };
 
-        const buildSlot = (entry, index) => {
+        const buildSlot = (entry, partyId, index, grid) => {
           const clone = template.content.cloneNode(true);
           const card = clone.querySelector(".slot-card");
           const clearButton = clone.querySelector(".slot-clear");
@@ -856,11 +846,14 @@
           const skillInputs = [...clone.querySelectorAll(".slot-skill")];
           const skillDrags = [...clone.querySelectorAll(".skill-drag")];
 
+          nameInput.dataset.party = String(partyId);
           nameInput.dataset.slot = String(index);
           nameInput.dataset.field = "name";
+          imageInput.dataset.party = String(partyId);
           imageInput.dataset.slot = String(index);
           imageInput.dataset.field = "imageUrl";
           skillInputs.forEach((input, skillIndex) => {
+            input.dataset.party = String(partyId);
             input.dataset.slot = String(index);
             input.dataset.field = "skill";
             input.dataset.skillIndex = String(skillIndex);
@@ -870,23 +863,23 @@
           nameInput.addEventListener("dragstart", blockDrag);
           imageInput.addEventListener("input", handleInput);
           imageInput.addEventListener("dragstart", blockDrag);
-          imageInput.addEventListener("blur", () => closeImageEditor(index));
+          imageInput.addEventListener("blur", () => closeImageEditor(partyId, index));
           imageInput.addEventListener("keydown", (event) => {
             if (event.key === "Escape") {
               event.preventDefault();
-              closeImageEditor(index);
+              closeImageEditor(partyId, index);
             }
           });
           skillInputs.forEach((input) => {
             input.addEventListener("input", handleInput);
             input.addEventListener("dragstart", blockDrag);
           });
-          clearButton.addEventListener("click", () => clearSlot(index));
-          preview.addEventListener("click", () => openImageEditor(index));
+          clearButton.addEventListener("click", () => clearSlot(partyId, index));
+          preview.addEventListener("click", () => openImageEditor(partyId, index));
           preview.addEventListener("keydown", (event) => {
             if (event.key === "Enter" || event.key === " ") {
               event.preventDefault();
-              openImageEditor(index);
+              openImageEditor(partyId, index);
             }
           });
 
@@ -910,6 +903,7 @@
               return;
             }
             dragState.type = "slot";
+            dragState.partyId = partyId;
             dragState.slotIndex = index;
             dragState.skillIndex = null;
             card.classList.add("is-dragging");
@@ -934,20 +928,24 @@
             event.preventDefault();
             card.classList.remove("drag-target");
             if (dragState.slotIndex === null) return;
-            swapSlots(dragState.slotIndex, index);
+            if (!dragState.partyId) return;
+            swapSlots(dragState.partyId, dragState.slotIndex, partyId, index);
             onDragEnd();
           });
 
           skillRows.forEach((row, skillIndex) => {
+            row.dataset.party = String(partyId);
             row.dataset.slot = String(index);
             row.dataset.skillIndex = String(skillIndex);
             const handle = skillDrags[skillIndex];
+            handle.dataset.party = String(partyId);
             handle.dataset.slot = String(index);
             handle.dataset.skillIndex = String(skillIndex);
             handle.addEventListener("dragstart", (event) => {
               event.stopPropagation();
               disableCardDrag();
               dragState.type = "skill";
+              dragState.partyId = partyId;
               dragState.slotIndex = index;
               dragState.skillIndex = skillIndex;
               event.dataTransfer.effectAllowed = "move";
@@ -956,7 +954,7 @@
             handle.addEventListener("dragend", onDragEnd);
             row.addEventListener("dragover", (event) => {
               if (dragState.type !== "skill") return;
-              if (dragState.slotIndex !== index) return;
+              if (dragState.partyId !== partyId || dragState.slotIndex !== index) return;
               event.preventDefault();
               row.classList.add("drag-target");
             });
@@ -965,11 +963,11 @@
             });
             row.addEventListener("drop", (event) => {
               if (dragState.type !== "skill") return;
-              if (dragState.slotIndex !== index) return;
+              if (dragState.partyId !== partyId || dragState.slotIndex !== index) return;
               event.preventDefault();
               row.classList.remove("drag-target");
               if (dragState.skillIndex === null) return;
-              swapSkills(index, dragState.skillIndex, skillIndex);
+              swapSkills(partyId, index, dragState.skillIndex, skillIndex);
               onDragEnd();
             });
           });
@@ -982,24 +980,86 @@
             previewImage,
             skillInputs,
           };
-          slotRefs.push(ref);
+          if (!slotRefs[partyId]) {
+            slotRefs[partyId] = [];
+          }
+          slotRefs[partyId].push(ref);
           renderSlot(ref, entry, index);
           grid.appendChild(clone);
         };
 
         const renderAll = () => {
-          grid.innerHTML = "";
-          slotRefs.length = 0;
-          const entries = getActiveEntries();
-          entries.forEach((entry, index) => {
-            buildSlot(entry, index);
-          });
+          partyList.innerHTML = "";
+          Object.keys(slotRefs).forEach((key) => delete slotRefs[key]);
+          for (let partyId = 1; partyId <= PARTY_COUNT; partyId += 1) {
+            const entries = getPartyEntries(partyId);
+            const clone = partyTemplate.content.cloneNode(true);
+            const section = clone.querySelector(".party-section");
+            const title = clone.querySelector(".party-title");
+            const grid = clone.querySelector(".party-grid");
+            const actions = clone.querySelectorAll("[data-action]");
+            if (section) section.dataset.party = String(partyId);
+            if (title) title.textContent = `PT ${partyId}`;
+            actions.forEach((button) => {
+              button.dataset.party = String(partyId);
+              const action = button.dataset.action;
+              if (action === "share") {
+                button.addEventListener("click", async () => {
+                  try {
+                    const payload = buildSharePayload(partyId);
+                    const encoded = encodeSharePayload(payload);
+                    const baseUrl = `${window.location.origin}${window.location.pathname}`;
+                    const shareUrl = `${baseUrl}?share=${encoded}`;
+                    await copyText(shareUrl);
+                    setStatus(`PT${partyId}の共有URLをコピーしました`);
+                  } catch (error) {
+                    setStatus("共有URLの作成に失敗しました");
+                  }
+                });
+              }
+              if (action === "export") {
+                button.addEventListener("click", async () => {
+                  try {
+                    const payload = buildSharePayload(partyId);
+                    const json = JSON.stringify(payload);
+                    await copyText(json);
+                    setStatus(`PT${partyId}のJSONをコピーしました`);
+                  } catch (error) {
+                    setStatus("JSONのコピーに失敗しました");
+                  }
+                });
+              }
+              if (action === "import") {
+                button.addEventListener("click", () => {
+                  const text = window.prompt("共有JSONを貼り付けてください");
+                  if (!text) return;
+                  try {
+                    const payload = JSON.parse(text);
+                    applySharePayload(payload, partyId);
+                  } catch (error) {
+                    setStatus("JSONの読み込みに失敗しました");
+                  }
+                });
+              }
+              if (action === "add") {
+                button.addEventListener("click", () => {
+                  addSlot(partyId);
+                });
+              }
+              if (action === "clear") {
+                button.addEventListener("click", () => {
+                  clearAll(partyId);
+                });
+              }
+            });
+
+            entries.forEach((entry, index) => {
+              buildSlot(entry, partyId, index, grid);
+            });
+            partyList.appendChild(clone);
+          }
         };
 
-        clearAllButton.addEventListener("click", clearAll);
-        if (addSlotButton) {
-          addSlotButton.addEventListener("click", addSlot);
-        }
         if (toastUndo) {
           toastUndo.addEventListener("click", () => {
             if (!toastState.onUndo) return;
@@ -1009,63 +1069,9 @@
             handler();
           });
         }
-        if (shareButton) {
-          shareButton.addEventListener("click", async () => {
-            try {
-              const payload = buildSharePayload();
-              const encoded = encodeSharePayload(payload);
-              const baseUrl = `${window.location.origin}${window.location.pathname}`;
-              const shareUrl = `${baseUrl}?share=${encoded}`;
-              await copyText(shareUrl);
-              setStatus("共有URLをコピーしました");
-            } catch (error) {
-              setStatus("共有URLの作成に失敗しました");
-            }
-          });
-        }
-
-        if (exportJsonButton) {
-          exportJsonButton.addEventListener("click", async () => {
-            try {
-              const payload = buildSharePayload();
-              const json = JSON.stringify(payload);
-              await copyText(json);
-              setStatus("JSONをコピーしました");
-            } catch (error) {
-              setStatus("JSONのコピーに失敗しました");
-            }
-          });
-        }
-
-        if (importJsonButton) {
-          importJsonButton.addEventListener("click", () => {
-            const text = window.prompt("共有JSONを貼り付けてください");
-            if (!text) return;
-            try {
-              const payload = JSON.parse(text);
-              applySharePayload(payload);
-            } catch (error) {
-              setStatus("JSONの読み込みに失敗しました");
-            }
-          });
-        }
-
-        if (partySelect) {
-          for (let i = 1; i <= PARTY_COUNT; i += 1) {
-            const option = document.createElement("option");
-            option.value = String(i);
-            option.textContent = `PT ${i}`;
-            partySelect.appendChild(option);
-          }
-          partySelect.value = String(activeParty);
-          partySelect.addEventListener("change", (event) => {
-            setActiveParty(event.target.value);
-          });
-        }
-
         renderAll();
         const shareData = readShareData();
-        if (shareData && applySharePayload(shareData)) {
+        if (shareData && applySharePayload(shareData, shareData.party)) {
           if (history.replaceState) {
             history.replaceState(null, "", window.location.pathname);
           }
