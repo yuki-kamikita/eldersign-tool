@@ -7,7 +7,7 @@
     <title>PT記録ツール</title>
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=delete"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
     />
     <link rel="stylesheet" href="../theme.css" />
     <style>
@@ -118,6 +118,13 @@
         transition: background 0.2s ease, color 0.2s ease;
       }
 
+      .material-symbols-outlined {
+        font-family: "Material Symbols Outlined";
+        font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+        line-height: 1;
+        display: inline-block;
+      }
+
       .slot-clear .material-symbols-outlined {
         font-size: 1.1rem;
         line-height: 1;
@@ -179,7 +186,7 @@
       .name-row {
         display: grid;
         gap: 10px;
-        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-columns: minmax(0, 1fr) auto auto;
         align-items: center;
       }
 
@@ -359,6 +366,9 @@
       <article class="card slot-card">
         <div class="field name-row">
           <input class="slot-name" type="text" placeholder="モンスター名" />
+          <button class="slot-clear slot-duplicate" type="button" aria-label="この枠を複製">
+            <span class="material-symbols-outlined" aria-hidden="true">content_copy</span>
+          </button>
           <button class="slot-clear" type="button" aria-label="この枠を削除">
             <span class="material-symbols-outlined" aria-hidden="true">delete</span>
           </button>
@@ -664,11 +674,11 @@
           const value = normalizeText(input.value);
           if (input.dataset.field === "name") {
             entry.name = value;
-            const ref = slotRefs[slotIndex];
+            const ref = slotRefs[partyId] ? slotRefs[partyId][slotIndex] : null;
             if (ref) updatePreview(ref, entry);
           } else if (input.dataset.field === "imageUrl") {
             entry.imageUrl = value;
-            const ref = slotRefs[slotIndex];
+            const ref = slotRefs[partyId] ? slotRefs[partyId][slotIndex] : null;
             if (ref) updatePreview(ref, entry);
           } else if (input.dataset.field === "skill") {
             const skillIndex = Number.parseInt(input.dataset.skillIndex, 10);
@@ -678,6 +688,21 @@
           }
 
           saveStore(store);
+        };
+
+        const duplicateSlot = (partyId, index) => {
+          const entries = getPartyEntries(partyId);
+          const target = entries[index];
+          if (!target) return;
+          const cloned = {
+            name: target.name,
+            imageUrl: target.imageUrl,
+            skills: Array.from({ length: SKILL_COUNT }, (_, skillIndex) => target.skills[skillIndex] || ""),
+          };
+          entries.splice(index + 1, 0, cloned);
+          saveStore(store);
+          renderAll();
+          setStatus(`PT${partyId}の枠を複製しました`);
         };
 
         const clearSlot = (partyId, index) => {
@@ -837,7 +862,8 @@
         const buildSlot = (entry, partyId, index, grid) => {
           const clone = template.content.cloneNode(true);
           const card = clone.querySelector(".slot-card");
-          const clearButton = clone.querySelector(".slot-clear");
+          const duplicateButton = clone.querySelector(".slot-duplicate");
+          const clearButton = clone.querySelector(".slot-clear:not(.slot-duplicate)");
           const nameInput = clone.querySelector(".slot-name");
           const imageInput = clone.querySelector(".slot-image-url");
           const preview = clone.querySelector(".slot-preview");
@@ -874,6 +900,9 @@
             input.addEventListener("input", handleInput);
             input.addEventListener("dragstart", blockDrag);
           });
+          if (duplicateButton) {
+            duplicateButton.addEventListener("click", () => duplicateSlot(partyId, index));
+          }
           clearButton.addEventListener("click", () => clearSlot(partyId, index));
           preview.addEventListener("click", () => openImageEditor(partyId, index));
           preview.addEventListener("keydown", (event) => {
