@@ -44,6 +44,13 @@
         background: var(--md-sys-surface);
       }
 
+      .search-area {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+      }
+
       .search-label {
         font-size: 0.85rem;
         color: var(--md-sys-on-surface-variant);
@@ -56,6 +63,11 @@
         font-size: 0.95rem;
         min-width: 260px;
         outline: none;
+      }
+
+      .search-status {
+        font-size: 0.85rem;
+        color: var(--md-sys-on-surface-variant);
       }
 
       .phase-tabs {
@@ -360,6 +372,10 @@
       }
 
       @media (max-width: 800px) {
+        .search-area {
+          width: 100%;
+        }
+
         .search-box {
           width: 100%;
         }
@@ -406,16 +422,19 @@
           </form>
           <span class="phase-status" id="phaseStatus"></span>
         </div>
-        <label class="search-box" for="searchInput">
-          <span class="search-label">検索</span>
-          <input
-            id="searchInput"
-            class="search-input"
-            type="search"
-            placeholder="モンスター名 / 画像URL / A / P"
-            autocomplete="off"
-          />
-        </label>
+        <div class="search-area">
+          <label class="search-box" for="searchInput">
+            <span class="search-label">検索</span>
+            <input
+              id="searchInput"
+              class="search-input"
+              type="search"
+              placeholder="モンスター名 / 画像URL / A / P"
+              autocomplete="off"
+            />
+          </label>
+          <span class="search-status" id="searchStatus"></span>
+        </div>
       </div>
 
       <section class="reveal">
@@ -431,6 +450,7 @@
       const phaseTabs = document.getElementById("phaseTabs");
       const groupGrid = document.getElementById("groupGrid");
       const searchInput = document.getElementById("searchInput");
+      const searchStatus = document.getElementById("searchStatus");
       const phaseJumpForm = document.getElementById("phaseJumpForm");
       const phaseJumpInput = document.getElementById("phaseJumpInput");
       const phaseStatus = document.getElementById("phaseStatus");
@@ -445,6 +465,15 @@
         empty.className = "empty";
         empty.textContent = text;
         groupGrid.appendChild(empty);
+      };
+
+      const updateSearchStatus = (count) => {
+        if (!searchStatus) return;
+        if (!currentQuery) {
+          searchStatus.textContent = "";
+          return;
+        }
+        searchStatus.textContent = `ヒット: ${count}件`;
       };
 
       const loadPhaseMap = async () => {
@@ -714,6 +743,7 @@
       const buildGroupCard = async (groupLabel, csvPath, query) => {
         const card = document.createElement("article");
         card.className = "group-card";
+        let hitCount = 0;
 
         const header = document.createElement("div");
         header.className = "group-header";
@@ -745,7 +775,7 @@
           empty.className = "empty";
           empty.textContent = "CSVが設定されていません。";
           card.appendChild(empty);
-          return card;
+          return { card, hitCount };
         }
 
         try {
@@ -755,6 +785,7 @@
           const rows = parseCsv(text);
           const data = rowsToObjects(rows);
           const filtered = query ? data.filter((row) => rowMatchesQuery(row, query)) : data;
+          hitCount = query ? filtered.length : 0;
           const { letterToName, nameToLetter } = buildLetterMaps(data);
           const hasLetters = letterToName.size > 0;
 
@@ -763,7 +794,7 @@
             empty.className = "empty";
             empty.textContent = "CSVの中身が空です。";
             card.appendChild(empty);
-            return card;
+            return { card, hitCount };
           }
 
           if (!filtered.length) {
@@ -771,7 +802,7 @@
             empty.className = "empty";
             empty.textContent = "検索条件に一致するデータがありません。";
             card.appendChild(empty);
-            return card;
+            return { card, hitCount };
           }
 
           const players = groupByPlayer(filtered);
@@ -963,19 +994,23 @@
           card.appendChild(empty);
         }
 
-        return card;
+        return { card, hitCount };
       };
 
       const renderPhase = async (phase) => {
         if (!phase || !phase.groups) {
           renderMessage("期の設定が不正です。phase_map.json を確認してください。");
+          updateSearchStatus(0);
           return;
         }
         groupGrid.innerHTML = "";
+        let totalHits = 0;
         for (const group of GROUP_ORDER) {
-          const card = await buildGroupCard(group, phase.groups[group], currentQuery);
+          const { card, hitCount } = await buildGroupCard(group, phase.groups[group], currentQuery);
+          totalHits += hitCount;
           groupGrid.appendChild(card);
         }
+        updateSearchStatus(totalHits);
       };
 
       const setupTabs = () => {
