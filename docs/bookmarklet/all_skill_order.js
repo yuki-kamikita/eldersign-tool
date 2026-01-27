@@ -655,7 +655,7 @@
             const variantLabel = getVariantLabel(monster.variant);
             const p0 = Array.from(monster.p0Skills).sort().join(" / ");
             const action = Array.from(monster.actionSkills).sort().join(" / ");
-            const imageCell = monster.imageUrl ? `=IMAGE("${monster.imageUrl}")` : "";
+            const imageCell = monster.imageUrl ? monster.imageUrl : "";
             const urlList = Array.from(monster.urls || []);
             const appearances = urlList.length;
             const urlColumns = [];
