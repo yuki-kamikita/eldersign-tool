@@ -1,5 +1,6 @@
 (() => {
   const thresholdHeight = 1000;
+  const downloadDelayMs = 800;
   const scriptId = "html2canvas-lib";
   const loadHtml2Canvas = () =>
     new Promise((resolve, reject) => {
@@ -30,6 +31,11 @@
     link.click();
     link.remove();
   };
+
+  const sleep = (ms) =>
+    new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
 
   const isFullyTransparent = (canvas) => {
     try {
@@ -164,6 +170,7 @@
       const croppedCanvas = cropTransparent(canvas);
       const filename = `${title}_${stamp}_part${String(index).padStart(2, "0")}.png`;
       downloadCanvas(croppedCanvas, filename);
+      await sleep(downloadDelayMs);
       index += 1;
     }
   };
