@@ -31,6 +31,7 @@
         align-items: center;
         justify-content: space-between;
         gap: 16px;
+        width: 100%;
       }
 
       .search-box {
@@ -72,20 +73,26 @@
 
       .phase-tabs {
         display: flex;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         gap: 10px;
+        overflow-x: auto;
+        max-width: 100%;
+        scrollbar-width: thin;
       }
 
       .phase-controls {
         display: flex;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         align-items: center;
         gap: 10px;
+        min-width: 0;
+        flex: 1 1 auto;
       }
 
       .phase-jump {
         display: flex;
         align-items: center;
+        flex-wrap: nowrap;
         gap: 6px;
         padding: 4px 10px;
         border-radius: 999px;
@@ -116,11 +123,7 @@
         padding: 4px 10px;
         font-size: 0.8rem;
         cursor: pointer;
-      }
-
-      .phase-status {
-        font-size: 0.85rem;
-        color: var(--md-sys-on-surface-variant);
+        white-space: nowrap;
       }
 
       .phase-button {
@@ -293,6 +296,11 @@
         color: var(--md-sys-primary);
       }
 
+      th[data-role="appear-toggle"],
+      td.appear-cell {
+        white-space: nowrap;
+      }
+
       .image-cell {
         width: 56px;
       }
@@ -334,6 +342,10 @@
         white-space: nowrap;
       }
 
+      .lv-variant-combo {
+        display: none;
+      }
+
       details summary {
         cursor: pointer;
         color: var(--md-sys-primary);
@@ -372,6 +384,23 @@
       }
 
       @media (max-width: 800px) {
+        main {
+          padding: 24px 14px 48px;
+        }
+
+        header {
+          padding: 18px;
+        }
+
+        .sticky-controls {
+          gap: 12px;
+          padding: 8px 10px;
+        }
+
+        .phase-controls {
+          width: 100%;
+        }
+
         .search-area {
           width: 100%;
         }
@@ -381,12 +410,124 @@
         }
 
         .search-input {
-          min-width: 160px;
+          min-width: 0;
           flex: 1;
         }
 
         table {
+          font-size: 0.75rem;
+        }
+
+        th,
+        td {
+          padding: 6px 4px;
+        }
+
+        .group-card {
+          padding: 14px;
+        }
+
+        .player-card {
+          padding: 10px 12px;
+        }
+
+        .image-cell {
+          width: 46px;
+        }
+
+        .image-cell img {
+          width: 36px;
+          height: 36px;
+        }
+
+        .skill-cell {
+          min-width: 120px;
+        }
+      }
+
+      @media (max-width: 600px) {
+        .group-card {
+          background: transparent;
+          border: none;
+          box-shadow: none;
+          padding: 0;
+          gap: 12px;
+        }
+
+        .group-header {
+          padding: 0 4px;
+        }
+
+        .group-actions {
+          gap: 6px;
+        }
+
+        .group-title {
+          font-size: 1rem;
+        }
+
+        .download-button {
+          padding: 4px 10px;
           font-size: 0.8rem;
+        }
+
+        .player-card {
+          padding: 10px 0;
+          border-left: none;
+          border-right: none;
+          border-radius: 0;
+        }
+      }
+
+      @media (max-width: 520px) {
+        .phase-controls {
+          gap: 6px;
+        }
+
+        .lv-col,
+        .variant-col {
+          display: none;
+        }
+
+        .lv-variant-combo {
+          display: table-cell;
+          width: 52px;
+          text-align: center;
+        }
+
+        .lv-variant-combo span {
+          display: block;
+          line-height: 1.1;
+        }
+
+        th.lv-variant-combo span {
+          display: block;
+          line-height: 1.1;
+        }
+
+        .phase-tabs {
+          width: 100%;
+        }
+
+        .search-area {
+          width: 100%;
+        }
+
+        .search-input {
+          font-size: 0.85rem;
+        }
+
+        .phase-jump {
+          flex: 1;
+        }
+
+        .phase-jump-input {
+          width: 52px;
+        }
+
+        .skill-tag {
+          font-size: 0.7rem;
+          padding: 2px 6px;
         }
       }
     </style>
@@ -397,7 +538,7 @@
         <p class="subtitle">Rankmatch Skill List</p>
         <h1>ランクマッチ集計</h1>
         <p class="helper-note">
-          計測結果は自動集計したものです。誤りや漏れがある可能性があります。<br>
+          計測結果には誤りや漏れがある可能性があります。<br>
           コンパニオンのAスキルは現在未対応です。
         </p>
         <div class="toolbar">
@@ -420,7 +561,6 @@
             />
             <button class="phase-jump-button" type="submit">表示</button>
           </form>
-          <span class="phase-status" id="phaseStatus"></span>
         </div>
         <div class="search-area">
           <label class="search-box" for="searchInput">
@@ -453,7 +593,6 @@
       const searchStatus = document.getElementById("searchStatus");
       const phaseJumpForm = document.getElementById("phaseJumpForm");
       const phaseJumpInput = document.getElementById("phaseJumpInput");
-      const phaseStatus = document.getElementById("phaseStatus");
       let currentPhase = null;
       let currentQuery = "";
       let phaseMeta = [];
@@ -507,16 +646,6 @@
         }));
       };
 
-      const updatePhaseStatus = (meta, message) => {
-        if (!phaseStatus) return;
-        if (message) {
-          phaseStatus.textContent = message;
-          return;
-        }
-        const label = meta?.phase?.label || meta?.phase?.id || "";
-        phaseStatus.textContent = label ? `表示中: ${label}` : "";
-      };
-
       const setActivePhase = (meta) => {
         if (!meta?.phase) return;
         currentPhase = meta.phase;
@@ -524,7 +653,6 @@
         document.querySelectorAll(".phase-button").forEach((tab) => {
           tab.classList.toggle("is-active", Number(tab.dataset.index) === meta.index);
         });
-        updatePhaseStatus(meta);
       };
 
       const LETTERS = "ABCDEFGHIJKL".split("");
@@ -830,9 +958,10 @@
             const thead = document.createElement("thead");
             thead.innerHTML =
               "<tr>" +
-              "<th>モンスター</th>" +
-              "<th>Lv</th>" +
-              "<th class=\"variant-cell\">種別</th>" +
+              "<th>名称</th>" +
+              "<th class=\"lv-col\">Lv</th>" +
+              "<th class=\"variant-cell variant-col\">種別</th>" +
+              "<th class=\"lv-variant-combo\"><span>Lv</span><span>／</span><span>種</span></th>" +
               "<th class=\"image-cell\">画像</th>" +
               "<th class=\"skill-cell\">A</th>" +
               "<th class=\"skill-cell\">P</th>" +
@@ -864,11 +993,22 @@
               monster.appendChild(monsterButton);
 
               const level = document.createElement("td");
+              level.className = "lv-col";
               level.textContent = row.level || "";
 
               const variant = document.createElement("td");
-              variant.className = "variant-cell";
+              variant.className = "variant-cell variant-col";
               variant.textContent = row.variant || "";
+
+              const lvVariant = document.createElement("td");
+              lvVariant.className = "lv-variant-combo";
+              const lvSpan = document.createElement("span");
+              lvSpan.textContent = row.level || "";
+              const slashSpan = document.createElement("span");
+              slashSpan.textContent = row.level && row.variant ? "／" : "";
+              const variantSpan = document.createElement("span");
+              variantSpan.textContent = row.variant || "";
+              lvVariant.append(lvSpan, slashSpan, variantSpan);
 
               const imageCell = document.createElement("td");
               imageCell.className = "image-cell";
@@ -925,6 +1065,7 @@
               }
 
               const appear = document.createElement("td");
+              appear.className = "appear-cell";
               const appearCount = row["出場回数"] || "";
               const links = buildLinks(row);
               if (links.length) {
@@ -965,7 +1106,7 @@
                 appear.textContent = appearCount;
               }
 
-              tr.append(monster, level, variant, imageCell, action, p0, appear);
+              tr.append(monster, level, variant, lvVariant, imageCell, action, p0, appear);
               tbody.appendChild(tr);
             });
 
@@ -1055,12 +1196,10 @@
           event.preventDefault();
           const value = parseInt(phaseJumpInput?.value || "", 10);
           if (Number.isNaN(value)) {
-            updatePhaseStatus(null, "期の数字を入力してください");
             return;
           }
           const meta = phaseByNumber.get(value);
           if (!meta) {
-            updatePhaseStatus(null, `${value}期は未登録です`);
             return;
           }
           setActivePhase(meta);
