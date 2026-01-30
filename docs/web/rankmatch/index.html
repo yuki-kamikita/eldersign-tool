@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
     <title>ランクマッチ集計</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+    />
     <link rel="stylesheet" href="../../theme.css" />
     <style>
       .toolbar {
@@ -36,25 +40,30 @@
 
       .search-box {
         display: flex;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         align-items: center;
         gap: 8px;
         padding: 6px 12px;
         border-radius: 999px;
         border: 1px solid var(--md-sys-outline-variant);
         background: var(--md-sys-surface);
+        flex: 1 1 auto;
+        min-width: 0;
       }
 
       .search-area {
         display: flex;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         align-items: center;
         gap: 10px;
+        min-width: 0;
+        flex: 1 1 auto;
       }
 
       .search-label {
         font-size: 0.85rem;
         color: var(--md-sys-on-surface-variant);
+        white-space: nowrap;
       }
 
       .search-input {
@@ -64,11 +73,64 @@
         font-size: 0.95rem;
         min-width: 260px;
         outline: none;
+        width: 100%;
       }
 
       .search-status {
         font-size: 0.85rem;
         color: var(--md-sys-on-surface-variant);
+      }
+
+      .accordion-actions {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 8px;
+        margin-left: auto;
+        flex-shrink: 0;
+      }
+
+      .accordion-button {
+        border: none;
+        background: transparent;
+        color: var(--md-sys-on-surface);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 6px 10px;
+        border-radius: 999px;
+        gap: 6px;
+        white-space: nowrap;
+        font-size: 0.85rem;
+      }
+
+      .accordion-button:hover {
+        background: color-mix(in srgb, var(--md-sys-primary) 12%, transparent);
+        color: var(--md-sys-primary);
+      }
+
+      .accordion-button .material-symbols-outlined {
+        font-size: 20px;
+      }
+
+      @media (max-width: 900px) {
+        .phase-controls {
+          order: 1;
+          justify-content: flex-start;
+        }
+
+        .accordion-actions {
+          order: 2;
+          margin-left: auto;
+        }
+
+        .search-area {
+          order: 3;
+          flex-basis: 100%;
+          width: 100%;
+          flex-wrap: wrap;
+        }
       }
 
       .phase-tabs {
@@ -98,6 +160,8 @@
         border-radius: 999px;
         border: 1px solid var(--md-sys-outline-variant);
         background: var(--md-sys-surface);
+        justify-content: flex-start;
+        flex: 0 0 auto;
       }
 
       .phase-jump-label {
@@ -229,12 +293,24 @@
         gap: 10px;
       }
 
-      .player-header {
+      .player-accordion > summary {
+        list-style: none;
+        cursor: pointer;
+      }
+
+      .player-accordion > summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .player-summary {
         display: flex;
-        flex-wrap: wrap;
         align-items: center;
         justify-content: space-between;
         gap: 10px;
+      }
+
+      .player-body {
+        margin-top: 6px;
       }
 
       .player-name {
@@ -397,14 +473,6 @@
           padding: 8px 10px;
         }
 
-        .phase-controls {
-          width: 100%;
-        }
-
-        .search-area {
-          width: 100%;
-        }
-
         .search-box {
           width: 100%;
         }
@@ -490,57 +558,6 @@
         }
       }
 
-      @media (max-width: 520px) {
-        .phase-controls {
-          gap: 6px;
-        }
-
-        .lv-col,
-        .variant-col {
-          display: none;
-        }
-
-        .lv-variant-combo {
-          display: table-cell;
-          width: 52px;
-          text-align: center;
-        }
-
-        .lv-variant-combo span {
-          display: block;
-          line-height: 1.1;
-        }
-
-        th.lv-variant-combo span {
-          display: block;
-          line-height: 1.1;
-        }
-
-        .phase-tabs {
-          width: 100%;
-        }
-
-        .search-area {
-          width: 100%;
-        }
-
-        .search-input {
-          font-size: 0.85rem;
-        }
-
-        .phase-jump {
-          flex: 1;
-        }
-
-        .phase-jump-input {
-          width: 52px;
-        }
-
-        .skill-tag {
-          font-size: 0.7rem;
-          padding: 2px 6px;
-        }
-      }
     </style>
   </head>
   <body>
@@ -586,6 +603,19 @@
           </label>
           <span class="search-status" id="searchStatus"></span>
         </div>
+        <div class="accordion-actions">
+          <button class="accordion-button" type="button" id="openAllPlayers" title="すべて開く">
+            <span class="material-symbols-outlined">expand_all</span>
+          </button>
+          <button
+            class="accordion-button"
+            type="button"
+            id="closeAllPlayers"
+            title="すべて閉じる"
+          >
+            <span class="material-symbols-outlined">collapse_all</span>
+          </button>
+        </div>
       </div>
 
       <section class="reveal">
@@ -602,6 +632,8 @@
       const groupGrid = document.getElementById("groupGrid");
       const searchInput = document.getElementById("searchInput");
       const searchStatus = document.getElementById("searchStatus");
+      const openAllPlayersButton = document.getElementById("openAllPlayers");
+      const closeAllPlayersButton = document.getElementById("closeAllPlayers");
       const phaseJumpForm = document.getElementById("phaseJumpForm");
       const phaseJumpInput = document.getElementById("phaseJumpInput");
       let currentPhase = null;
@@ -624,6 +656,12 @@
           return;
         }
         searchStatus.textContent = `ヒット: ${count}件`;
+      };
+
+      const setAllPlayerAccordions = (isOpen) => {
+        document.querySelectorAll("details.player-accordion").forEach((detail) => {
+          detail.open = isOpen;
+        });
       };
 
       const loadPhaseMap = async () => {
@@ -949,18 +987,19 @@
           list.className = "player-list";
 
           players.forEach((rows, playerName) => {
-            const playerCard = document.createElement("div");
-            playerCard.className = "player-card";
+            const playerCard = document.createElement("details");
+            playerCard.className = "player-card player-accordion";
+            playerCard.open = true;
 
-            const playerHeader = document.createElement("div");
-            playerHeader.className = "player-header";
+            const summary = document.createElement("summary");
+            summary.className = "player-summary";
 
             const nameEl = document.createElement("h4");
             nameEl.className = "player-name";
             nameEl.textContent = playerName;
 
-            playerHeader.append(nameEl);
-            playerCard.appendChild(playerHeader);
+            summary.append(nameEl);
+            playerCard.appendChild(summary);
 
             const playerLetter = hasLetters ? nameToLetter.get(playerName) || "" : "";
             const schedule = playerLetter ? SCHEDULE_BY_LETTER[playerLetter] || [] : [];
@@ -1134,7 +1173,10 @@
                 });
               });
             }
-            playerCard.appendChild(table);
+            const body = document.createElement("div");
+            body.className = "player-body";
+            body.appendChild(table);
+            playerCard.appendChild(body);
             list.appendChild(playerCard);
           });
 
@@ -1201,6 +1243,18 @@
         currentQuery = event.target.value.trim();
         if (currentPhase) renderPhase(currentPhase);
       });
+
+      if (openAllPlayersButton) {
+        openAllPlayersButton.addEventListener("click", () => {
+          setAllPlayerAccordions(true);
+        });
+      }
+
+      if (closeAllPlayersButton) {
+        closeAllPlayersButton.addEventListener("click", () => {
+          setAllPlayerAccordions(false);
+        });
+      }
 
       if (phaseJumpForm) {
         phaseJumpForm.addEventListener("submit", (event) => {
