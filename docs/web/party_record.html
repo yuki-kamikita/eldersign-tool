@@ -19,6 +19,35 @@
       margin-bottom: 16px;
     }
 
+    .auth-actions {
+      display: grid;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: var(--md-sys-on-surface-variant);
+    }
+
+    .auth-form {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: minmax(160px, 1fr) minmax(140px, 1fr);
+      align-items: center;
+    }
+
+    .auth-form input {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--md-sys-outline-variant);
+      background: var(--md-sys-surface);
+      color: var(--md-sys-on-surface);
+      font-size: 0.85rem;
+    }
+
+    .auth-actions .button {
+      min-width: auto;
+      padding: 8px 12px;
+    }
+
     .status-text {
       font-size: 0.9rem;
       color: var(--md-sys-on-surface-variant);
@@ -365,6 +394,17 @@
       </div>
       <div class="tool-actions">
         <div class="status-text" id="status-text">保存は自動です</div>
+        <div class="auth-actions">
+          <span id="auth-status">未ログイン</span>
+          <div class="auth-form" id="auth-form">
+            <input type="email" id="auth-email" placeholder="メールアドレス" autocomplete="email" />
+            <input type="password" id="auth-password" placeholder="パスワード" autocomplete="current-password" />
+            <button class="button secondary" type="button" id="auth-email-login">ログイン</button>
+            <button class="button secondary" type="button" id="auth-email-signup">新規登録</button>
+            <button class="button secondary" type="button" id="auth-email-reset">再設定メール</button>
+          </div>
+          <button class="button secondary" type="button" id="auth-signout">ログアウト</button>
+        </div>
       </div>
       <div class="party-list" id="party-list"></div>
       <div class="party-add">
@@ -448,15 +488,21 @@
       loadFirestoreDoc,
       saveFirestoreDoc,
       serverTimestamp,
-    } from "../firebase.js?v1";
+      observeAuth,
+      signInAnon,
+      signInEmail,
+      signUpEmail,
+      linkEmail,
+      resetPassword,
+      signOutUser,
+    } from "../firebase.js?v16";
 
-    (() => {
+    (async () => {
       const DEFAULT_SLOT_COUNT = 4;
       const SKILL_COUNT = 5;
       const DEFAULT_PARTY_COUNT = 4;
-      const LOCAL_CACHE_KEY = "eldersign_party_record_cache_v2";
+      const LOCAL_CACHE_KEY_BASE = "eldersign_party_record_cache_v2";
       const LEGACY_KEY = "eldersign_party_record_v1";
-      const CLIENT_ID_KEY = "eldersign_party_record_client_id_v1";
       const FIRESTORE_COLLECTION = "partyRecords";
       const SAVE_DELAY_MS = 600;
 
@@ -468,6 +514,15 @@
       const toast = document.getElementById("toast");
       const toastMessage = document.getElementById("toast-message");
       const toastUndo = document.getElementById("toast-undo");
+      const authStatus = document.getElementById("auth-status");
+      const authForm = document.getElementById("auth-form");
+      const authEmailInput = document.getElementById("auth-email");
+      const authPasswordInput = document.getElementById("auth-password");
+      const authEmailLoginButton = document.getElementById("auth-email-login");
+      const authEmailSignupButton = document.getElementById("auth-email-signup");
+      const authEmailResetButton = document.getElementById("auth-email-reset");
+      const authSignoutButton = document.getElementById("auth-signout");
+
 
       const defaultEntry = () => ({
         name: "",
@@ -514,23 +569,11 @@
         };
       };
 
-      const getClientId = () => {
-        try {
-          const stored = localStorage.getItem(CLIENT_ID_KEY);
-          if (stored) return stored;
-          const generated = crypto.randomUUID
-            ? crypto.randomUUID()
-            : `client_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-          localStorage.setItem(CLIENT_ID_KEY, generated);
-          return generated;
-        } catch (error) {
-          return "client_fallback";
-        }
-      };
+      const getCacheKey = (uid) => `${LOCAL_CACHE_KEY_BASE}_${uid || "anonymous"}`;
 
-      const readLocalCache = () => {
+      const readLocalCache = (uid) => {
         try {
-          const raw = localStorage.getItem(LOCAL_CACHE_KEY);
+          const raw = localStorage.getItem(getCacheKey(uid));
           if (raw) {
             const parsed = JSON.parse(raw);
             if (parsed && typeof parsed === "object") {
@@ -556,10 +599,9 @@
         return null;
       };
 
-      const loadStore = async () => {
-        const clientId = getClientId();
+      const loadStore = async (uid) => {
         try {
-          const payload = await loadFirestoreDoc([FIRESTORE_COLLECTION, clientId]);
+          const payload = await loadFirestoreDoc([FIRESTORE_COLLECTION, uid]);
           if (payload && payload.store) {
             return { store: normalizeStore(payload.store), source: "firestore" };
           }
@@ -567,7 +609,7 @@
           setStatus("Firestoreの読み込みに失敗しました。ローカルを使用します。");
         }
 
-        const localStore = readLocalCache();
+        const localStore = readLocalCache(uid);
         if (localStore) return { store: localStore, source: "local" };
 
         return { store: buildDefaultStore(), source: "default" };
@@ -577,7 +619,7 @@
 
       const saveStore = (store, { immediate = false } = {}) => {
         try {
-          localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(store));
+          localStorage.setItem(getCacheKey(currentUid), JSON.stringify(store));
         } catch (error) {
           // ignore cache errors
         }
@@ -588,8 +630,9 @@
         }
 
         const runSave = async () => {
+          if (!currentUid) return;
           try {
-            await saveFirestoreDoc([FIRESTORE_COLLECTION, getClientId()], {
+            await saveFirestoreDoc([FIRESTORE_COLLECTION, currentUid], {
               store,
               updatedAt: serverTimestamp(),
               env: firebaseEnv,
@@ -627,6 +670,30 @@
         statusText.textContent = message;
       };
 
+      const setAuthStatus = (user) => {
+        if (!authStatus) return;
+        if (!user) {
+          authStatus.textContent = "未ログイン";
+          return;
+        }
+        if (user.isAnonymous) {
+          authStatus.textContent = "匿名で利用中";
+          return;
+        }
+        authStatus.textContent = user.email || "Googleログイン中";
+      };
+
+      const updateAuthButtons = (user) => {
+        if (!authForm || !authSignoutButton) return;
+        if (!user || user.isAnonymous) {
+          authForm.style.display = "grid";
+          authSignoutButton.style.display = "none";
+          return;
+        }
+        authForm.style.display = "none";
+        authSignoutButton.style.display = "inline-flex";
+      };
+
       const toastState = {
         timer: null,
         onUndo: null,
@@ -653,6 +720,11 @@
       };
 
       let store = buildDefaultStore();
+      let currentUid = null;
+      let currentUser = null;
+      let pendingInit = null;
+      let hasAppliedIncoming = false;
+      let anonSignInTimer = null;
       const ensureParty = (partyId) => {
         if (!store.parties[partyId]) {
           store.parties[partyId] = buildParty();
@@ -1249,9 +1321,10 @@
         }
       };
 
-      const initStore = async () => {
+      const initStore = async (uid) => {
+        if (!uid) return;
         setStatus("Firestoreから読み込み中...");
-        const { store: loadedStore, source } = await loadStore();
+        const { store: loadedStore, source } = await loadStore(uid);
         store = loadedStore;
         if (!Number.isFinite(store.partyCount) || store.partyCount < 1) {
           store.partyCount = DEFAULT_PARTY_COUNT;
@@ -1262,18 +1335,82 @@
         ensurePartyCount(store.partyCount);
         store.activeParty = clampParty(store.activeParty);
         renderAll();
-        const shareData = readShareData();
-        if (shareData && applySharePayload(shareData, shareData.party)) {
-          if (history.replaceState) {
-            history.replaceState(null, "", window.location.pathname);
+        if (!hasAppliedIncoming) {
+          const shareData = readShareData();
+          if (shareData && applySharePayload(shareData, shareData.party)) {
+            if (history.replaceState) {
+              history.replaceState(null, "", window.location.pathname);
+            }
+          } else {
+            applyIncoming(readIncoming());
           }
-        } else {
-          applyIncoming(readIncoming());
+          hasAppliedIncoming = true;
         }
         if (source !== "firestore") {
           saveStore(store, { immediate: true });
         }
         setStatus("保存は自動です");
+      };
+
+      const initLocalStore = () => {
+        store = readLocalCache(null) || buildDefaultStore();
+        if (!Number.isFinite(store.partyCount) || store.partyCount < 1) {
+          store.partyCount = DEFAULT_PARTY_COUNT;
+        }
+        if (!store.partyNames || typeof store.partyNames !== "object") {
+          store.partyNames = {};
+        }
+        ensurePartyCount(store.partyCount);
+        store.activeParty = clampParty(store.activeParty);
+        renderAll();
+        if (!hasAppliedIncoming) {
+          const shareData = readShareData();
+          if (shareData && applySharePayload(shareData, shareData.party)) {
+            if (history.replaceState) {
+              history.replaceState(null, "", window.location.pathname);
+            }
+          } else {
+            applyIncoming(readIncoming());
+          }
+          hasAppliedIncoming = true;
+        }
+        setStatus("ログインすると他端末と共有できます");
+      };
+
+      const migrateIfNeeded = async (fromUid, toUid) => {
+        if (!fromUid || !toUid || fromUid === toUid) return;
+        const fromCache = readLocalCache(fromUid);
+        if (!fromCache) return;
+        const remote = await loadStore(toUid);
+        if (remote && remote.store && remote.source === "firestore") return;
+        try {
+          await saveFirestoreDoc([FIRESTORE_COLLECTION, toUid], {
+            store: fromCache,
+            updatedAt: serverTimestamp(),
+            env: firebaseEnv,
+          });
+        } catch (error) {
+          setStatus("ログイン後の引き継ぎに失敗しました。");
+        }
+      };
+
+      const handleAuthChange = async (user) => {
+        if (anonSignInTimer) {
+          clearTimeout(anonSignInTimer);
+          anonSignInTimer = null;
+        }
+        currentUser = user;
+        currentUid = user ? user.uid : null;
+        setAuthStatus(user);
+        updateAuthButtons(user);
+        if (!currentUid) return;
+        if (pendingInit) {
+          pendingInit.cancelled = true;
+        }
+        const ticket = { cancelled: false };
+        pendingInit = ticket;
+        await initStore(currentUid);
+        if (ticket.cancelled) return;
       };
 
       if (toastUndo) {
@@ -1288,7 +1425,144 @@
       if (addPartyButton) {
         addPartyButton.addEventListener("click", addParty);
       }
-      initStore();
+      const readAuthInputs = () => {
+        if (!authEmailInput || !authPasswordInput) return null;
+        const email = authEmailInput.value.trim();
+        const password = authPasswordInput.value;
+        if (!email) {
+          setStatus("メールアドレスを入力してください。");
+          return null;
+        }
+        return { email, password };
+      };
+
+      if (authEmailLoginButton) {
+        authEmailLoginButton.addEventListener("click", async () => {
+          const input = readAuthInputs();
+          if (!input) return;
+          if (!input.password) {
+            setStatus("パスワードを入力してください。");
+            return;
+          }
+          try {
+            let result;
+            if (currentUser && currentUser.isAnonymous) {
+              result = await linkEmail(input.email, input.password);
+            } else {
+              result = await signInEmail(input.email, input.password);
+            }
+            if (result && result.user && currentUid && result.user.uid !== currentUid) {
+              await migrateIfNeeded(currentUid, result.user.uid);
+              await initStore(result.user.uid);
+            }
+            setStatus("ログインしました。");
+            authPasswordInput.value = "";
+          } catch (error) {
+            const code = error && error.code;
+            if (currentUser && currentUser.isAnonymous && code === "auth/email-already-in-use") {
+              try {
+                const result = await signInEmail(input.email, input.password);
+                if (result && result.user && currentUid && result.user.uid !== currentUid) {
+                  await migrateIfNeeded(currentUid, result.user.uid);
+                  await initStore(result.user.uid);
+                }
+                setStatus("ログインしました。");
+                authPasswordInput.value = "";
+                return;
+              } catch (signinError) {
+                const detail = signinError && (signinError.code || signinError.message);
+                console.error("メールログイン失敗", signinError);
+                setStatus(`メールログインに失敗しました。${detail || ""}`);
+                return;
+              }
+            }
+            const detail = error && (error.code || error.message);
+            console.error("メールログイン失敗", error);
+            setStatus(`メールログインに失敗しました。${detail || ""}`);
+          }
+        });
+      }
+
+      if (authEmailSignupButton) {
+        authEmailSignupButton.addEventListener("click", async () => {
+          const input = readAuthInputs();
+          if (!input) return;
+          if (!input.password) {
+            setStatus("パスワードを入力してください。");
+            return;
+          }
+          try {
+            let result;
+            if (currentUser && currentUser.isAnonymous) {
+              result = await linkEmail(input.email, input.password);
+            } else {
+              result = await signUpEmail(input.email, input.password);
+            }
+            if (result && result.user && currentUid && result.user.uid !== currentUid) {
+              await migrateIfNeeded(currentUid, result.user.uid);
+              await initStore(result.user.uid);
+            }
+            setStatus("アカウントを作成しました。");
+            authPasswordInput.value = "";
+          } catch (error) {
+            const detail = error && (error.code || error.message);
+            console.error("新規登録失敗", error);
+            setStatus(`新規登録に失敗しました。${detail || ""}`);
+          }
+        });
+      }
+
+      if (authEmailResetButton) {
+        authEmailResetButton.addEventListener("click", async () => {
+          if (!authEmailInput) return;
+          const email = authEmailInput.value.trim();
+          if (!email) {
+            setStatus("メールアドレスを入力してください。");
+            return;
+          }
+          try {
+            await resetPassword(email);
+            setStatus("再設定メールを送信しました。");
+          } catch (error) {
+            const detail = error && (error.code || error.message);
+            console.error("再設定メール失敗", error);
+            setStatus(`再設定メールの送信に失敗しました。${detail || ""}`);
+          }
+        });
+      }
+      if (authSignoutButton) {
+        authSignoutButton.addEventListener("click", async () => {
+          try {
+            if (currentUser && currentUser.isAnonymous) {
+              setStatus("匿名利用中はログアウトできません");
+              return;
+            }
+            await signOutUser();
+          } catch (error) {
+            setStatus("ログアウトに失敗しました。");
+          }
+        });
+      }
+
+      observeAuth(async (user) => {
+        if (!user) {
+          if (anonSignInTimer) {
+            clearTimeout(anonSignInTimer);
+          }
+          anonSignInTimer = setTimeout(async () => {
+            try {
+              setStatus("匿名ログイン中...");
+              await signInAnon();
+            } catch (error) {
+              console.error("匿名ログイン失敗", error);
+              const detail = error && (error.code || error.message);
+              setStatus(`匿名ログインに失敗しました。${detail || ""}`);
+            }
+          }, 300);
+          return;
+        }
+        handleAuthChange(user);
+      });
     })();
   </script>
   <script src="../footer.js" defer></script>
