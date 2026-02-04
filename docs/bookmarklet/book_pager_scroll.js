@@ -88,14 +88,15 @@
     scrollWrap.style.minWidth = "0";
   }
 
-  function applyNavPagerStyle(nav, list) {
+  function applyNavPagerStyle(nav, list, scrollWrap, scrollLi) {
     nav.style.maxWidth = "100%";
     nav.style.overflow = "hidden";
     list.style.display = "flex";
     list.style.flexWrap = "nowrap";
     list.style.alignItems = "center";
     list.style.justifyContent = "center";
-    list.style.overflowX = "auto";
+    list.style.overflowX = "hidden";
+    list.style.overflowY = "hidden";
     list.style.webkitOverflowScrolling = "touch";
     list.style.scrollbarWidth = "none";
     list.style.msOverflowStyle = "none";
@@ -103,6 +104,33 @@
     list.style.margin = "0";
     list.style.listStyle = "none";
     list.style.width = "100%";
+
+    if (scrollLi) {
+      scrollLi.style.flex = "1 1 auto";
+      scrollLi.style.minWidth = "0";
+      scrollLi.style.display = "flex";
+      scrollLi.style.background = "none";
+      scrollLi.style.boxShadow = "none";
+      scrollLi.style.border = "none";
+      scrollLi.style.padding = "0";
+      scrollLi.style.margin = "0";
+    }
+
+    if (scrollWrap) {
+      scrollWrap.style.display = "flex";
+      scrollWrap.style.flexWrap = "nowrap";
+      scrollWrap.style.alignItems = "center";
+      scrollWrap.style.overflowX = "auto";
+      scrollWrap.style.overflowY = "hidden";
+      scrollWrap.style.webkitOverflowScrolling = "touch";
+      scrollWrap.style.scrollbarWidth = "none";
+      scrollWrap.style.msOverflowStyle = "none";
+      scrollWrap.style.padding = "0 8px";
+      scrollWrap.style.margin = "0";
+      scrollWrap.style.listStyle = "none";
+      scrollWrap.style.width = "max-content";
+      scrollWrap.style.background = "none";
+    }
   }
 
   function createNavPagerButton(label, href, liClass, isCurrent, isDisabled) {
@@ -171,7 +199,18 @@
 
     pgContainer.innerHTML = "";
     if (isNavPager) {
-      scrollWrap.appendChild(
+      const list = document.createElement("ul");
+      for (let page = 1; page <= totalPages; page += 1) {
+        const index = page - 1;
+        const isCurrent = index === currentPageIndex;
+        scrollWrap.appendChild(
+          createNavPagerButton(String(page), buildUrlForPage(index), isCurrent ? "on" : "", isCurrent, false)
+        );
+      }
+      const scrollLi = document.createElement("li");
+      scrollLi.appendChild(scrollWrap);
+
+      list.appendChild(
         createNavPagerButton(
           "«",
           prevIndex == null ? null : buildUrlForPage(prevIndex),
@@ -180,14 +219,8 @@
           prevIndex == null
         )
       );
-      for (let page = 1; page <= totalPages; page += 1) {
-        const index = page - 1;
-        const isCurrent = index === currentPageIndex;
-        scrollWrap.appendChild(
-          createNavPagerButton(String(page), buildUrlForPage(index), isCurrent ? "on" : "", isCurrent, false)
-        );
-      }
-      scrollWrap.appendChild(
+      list.appendChild(scrollLi);
+      list.appendChild(
         createNavPagerButton(
           "»",
           nextIndex == null ? null : buildUrlForPage(nextIndex),
@@ -196,8 +229,8 @@
           nextIndex == null
         )
       );
-      applyNavPagerStyle(pgContainer, scrollWrap);
-      pgContainer.appendChild(scrollWrap);
+      applyNavPagerStyle(pgContainer, list, scrollWrap, scrollLi);
+      pgContainer.appendChild(list);
     } else {
       for (let page = 1; page <= totalPages; page += 1) {
         const index = page - 1;
