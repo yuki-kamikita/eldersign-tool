@@ -29,6 +29,40 @@
         }
       }
 
+      const prefix = `${LOCAL_CACHE_KEY_BASE}_`;
+      const candidateKeys = [];
+      for (let i = 0; i < localStorage.length; i += 1) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(prefix)) {
+          candidateKeys.push(key);
+        }
+      }
+      if (candidateKeys.length > 0) {
+        const preferredSuffixes = ["_anonymous", "_null", "_undefined"];
+        let chosen = candidateKeys[0];
+        for (const suffix of preferredSuffixes) {
+          const hit = candidateKeys.find((key) => key.endsWith(suffix));
+          if (hit) {
+            chosen = hit;
+            break;
+          }
+        }
+        const candidateRaw = localStorage.getItem(chosen);
+        if (candidateRaw) {
+          const candidateParsed = JSON.parse(candidateRaw);
+          if (candidateParsed && typeof candidateParsed === "object") {
+            if (uid) {
+              try {
+                localStorage.setItem(getCacheKey(uid), candidateRaw);
+              } catch (error) {
+                // ignore cache migration errors
+              }
+            }
+            return normalizeStore(candidateParsed);
+          }
+        }
+      }
+
       const legacyRaw = localStorage.getItem(LEGACY_KEY);
       if (legacyRaw) {
         const legacyParsed = JSON.parse(legacyRaw);
