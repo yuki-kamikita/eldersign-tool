@@ -4,6 +4,25 @@
         const value = Number(input && input.value);
         return Number.isFinite(value) ? value : fallback;
       });
+      const renderResultPairs = common.renderResultPairs || ((container, pairs, options = {}) => {
+        if (!container) return;
+        const itemClass = options.itemClass || "result-pair-item";
+        const labelClass = options.labelClass || "result-label";
+        const valueClass = options.valueClass || "result-value";
+        container.innerHTML = "";
+        (pairs || []).forEach((pair) => {
+          const item = document.createElement("div");
+          item.className = itemClass;
+          const label = document.createElement("div");
+          label.className = labelClass;
+          label.textContent = pair && pair.label != null ? String(pair.label) : "";
+          const value = document.createElement("div");
+          value.className = valueClass;
+          value.textContent = pair && pair.value != null ? String(pair.value) : "-";
+          item.append(label, value);
+          container.appendChild(item);
+        });
+      });
       const setChipValue = common.setChipValue || ((input, value) => {
         if (!input || value == null) return;
         const strValue = String(value);
@@ -46,10 +65,10 @@
       };
 
       const outputs = {
-        normalList: document.getElementById("normal-result-list"),
-        latentList: document.getElementById("latent-result-list"),
-        appearanceTotal: document.getElementById("appearance-total"),
-        appearanceMeta: document.getElementById("appearance-meta"),
+        summaryList: document.getElementById("summary-result-list"),
+        detailList: document.getElementById("detail-result-list"),
+        resultSummary: document.getElementById("result-summary"),
+        resultDetail: document.getElementById("result-detail-panel"),
       };
 
       // 小数1桁で切り捨てる。
@@ -286,36 +305,69 @@
         return `${value.toFixed(1)}%`;
       }
 
-      // 通常/潜在スキルの計算結果一覧を描画する。
-      function renderSkillResults(listEl, entries, baseCoeff, alpha, bonus, isSameFamily, isLatent) {
+      // 1スキル分の率計算結果を表示用データへ変換する。
+      function buildSkillResult(entry, baseCoeff, alpha, bonus, isSameFamily, isLatent) {
+        const lv = entry.level;
+        const base = calcInheritBase(isSameFamily, isLatent, lv, alpha);
+        const total = base == null ? null : Math.min(100, Math.max(0, truncate1(base + bonus)));
+        const name = entry.name;
+        const label = name ? `${name} Lv${lv}` : `Lv${lv}`;
+        const lvValue = truncate1(lv * baseCoeff).toFixed(1);
+        const meta = `スキルLv ${lvValue}% + レアリティ ${alpha}% + 補正 ${truncate1(bonus).toFixed(1)}%`;
+        return {
+          label,
+          rateText: formatRate(total),
+          rateValue: total,
+          meta,
+        };
+      }
+
+      // 詳細表示用のフラットな行リストを描画する。
+      function renderDetailEntries(listEl, items) {
         listEl.innerHTML = "";
-        if (entries.length === 0) {
-          const li = document.createElement("li");
-          li.className = "result-item";
-          li.textContent = "スキルLvを追加してください。";
-          listEl.appendChild(li);
+        if (!items || items.length === 0) {
+          const empty = document.createElement("div");
+          empty.className = "result-detail-entry";
+          empty.textContent = "スキルLvを追加してください。";
+          listEl.appendChild(empty);
           return;
         }
 
-        entries.forEach((entry) => {
-          const lv = entry.level;
-          const base = calcInheritBase(isSameFamily, isLatent, lv, alpha);
-          const total =
-            base == null ? null : Math.min(100, Math.max(0, truncate1(base + bonus)));
-          const li = document.createElement("li");
-          li.className = "result-item";
-          const title = document.createElement("div");
-          title.className = "result-item-title";
-          const name = entry.name;
-          const label = name ? `${name} Lv${lv}` : `Lv${lv}`;
-          title.textContent = `${label}: ${formatRate(total)}`;
+        items.forEach((itemData) => {
+          const item = document.createElement("div");
+          item.className = "result-detail-entry";
+          if (itemData.dividerBefore) item.classList.add("is-group-divider");
+
+          const row = document.createElement("div");
+          row.className = "result-row";
+
+          const label = document.createElement("div");
+          label.className = "result-label";
+          label.textContent = itemData.label;
+
           const meta = document.createElement("div");
-          meta.className = "result-item-meta";
-          const lvValue = truncate1(lv * baseCoeff).toFixed(1);
-          meta.textContent = `スキルLv ${lvValue}% + レアリティ ${alpha}% + 補正 ${truncate1(bonus).toFixed(1)}%`;
-          li.appendChild(title);
-          li.appendChild(meta);
-          listEl.appendChild(li);
+          meta.className = "result-detail-meta";
+          meta.textContent = itemData.meta || "-";
+
+          row.append(label);
+          item.append(row, meta);
+          listEl.appendChild(item);
+        });
+      }
+
+      // 出力カードの詳細表示をタップ/キー操作で開閉できるようにする。
+      function bindResultAccordion(summaryEl, detailEl) {
+        if (!summaryEl || !detailEl) return;
+        const toggle = () => {
+          const expanded = summaryEl.getAttribute("aria-expanded") === "true";
+          summaryEl.setAttribute("aria-expanded", expanded ? "false" : "true");
+          detailEl.classList.toggle("is-hidden", expanded);
+        };
+        summaryEl.addEventListener("click", toggle);
+        summaryEl.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter" && event.key !== " ") return;
+          event.preventDefault();
+          toggle();
         });
       }
 
@@ -350,9 +402,12 @@
         });
         const normalEntries = getSkillEntries(inputs.normalSkillList);
         const latentEntries = getSkillEntries(inputs.latentSkillList);
-
-        renderSkillResults(outputs.normalList, normalEntries, 9.5, alpha, bonus, isSameFamily, false);
-        renderSkillResults(outputs.latentList, latentEntries, 6, alpha, bonus, isSameFamily, true);
+        const normalResults = normalEntries.map((entry) =>
+          buildSkillResult(entry, 9.5, alpha, bonus, isSameFamily, false)
+        );
+        const latentResults = latentEntries.map((entry) =>
+          buildSkillResult(entry, 6, alpha, bonus, isSameFamily, true)
+        );
 
         const currentLv = readNumber(inputs.currentLv);
         const maxLv = readNumber(inputs.maxLv);
@@ -368,11 +423,50 @@
             ? null
             : Math.min(100, Math.max(0, truncate1(appearanceBase + bonus)));
 
-        outputs.appearanceTotal.textContent = formatRate(appearanceTotal);
-        outputs.appearanceMeta.textContent =
-          appearanceBase == null
-            ? "現Lv/最高Lvを入力してください。"
-            : `レベル ${truncate1(appearanceLevel).toFixed(1)}% + レアリティ ${alpha}% + 補正 ${truncate1(bonus).toFixed(1)}%`;
+        const summaryPairs = [
+          ...normalResults.map((result) => ({
+            label: `(通常)${result.label}`,
+            value: result.rateText,
+          })),
+          ...latentResults.map((result) => ({
+            label: `(潜在)${result.label}`,
+            value: result.rateText,
+          })),
+          { label: "潜在発現率", value: formatRate(appearanceTotal) },
+        ];
+        const summaryDividerIndexes = [
+          normalResults.length,
+          normalResults.length + latentResults.length,
+        ];
+        const detailItems = [
+          ...normalResults.map((result) => ({
+            label: `(通常)${result.label}`,
+            meta: `${result.meta} = ${result.rateText}`,
+            dividerBefore: false,
+          })),
+          ...latentResults.map((result) => ({
+            label: `(潜在)${result.label}`,
+            meta: `${result.meta} = ${result.rateText}`,
+            dividerBefore: false,
+          })),
+          {
+            label: "潜在発現率",
+            meta:
+              appearanceBase == null
+                ? "現Lv/最高Lvを入力してください。"
+                : `レベル ${truncate1(appearanceLevel).toFixed(1)}% + レアリティ ${alpha}% + 補正 ${truncate1(bonus).toFixed(1)}% = ${formatRate(appearanceTotal)}`,
+            dividerBefore: false,
+          },
+        ];
+        renderResultPairs(outputs.summaryList, summaryPairs, { itemClass: "result-row" });
+        Array.from(outputs.summaryList.querySelectorAll(".result-row")).forEach((row, index) => {
+          row.classList.toggle("is-group-divider", summaryDividerIndexes.includes(index));
+        });
+        if (detailItems[normalResults.length]) detailItems[normalResults.length].dividerBefore = true;
+        if (detailItems[normalResults.length + latentResults.length]) {
+          detailItems[normalResults.length + latentResults.length].dividerBefore = true;
+        }
+        renderDetailEntries(outputs.detailList, detailItems);
       }
 
       [inputs.currentLv].forEach((input) => {
@@ -410,6 +504,7 @@
       setChipValue(inputs.familyMatch, inputs.familyMatch.value);
       setChipValue(inputs.rarity, inputs.rarity.value);
       setChipValue(inputs.maxLv, inputs.maxLv.value);
+      bindResultAccordion(outputs.resultSummary, outputs.resultDetail);
       applyParams(new URLSearchParams(window.location.search));
       updateResult();
     })();

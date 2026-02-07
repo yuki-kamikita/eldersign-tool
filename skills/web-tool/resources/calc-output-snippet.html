@@ -1,13 +1,23 @@
 <!--
   計算ツール共通の結果表示スニペット。
   - 出力エリアは sticky
-  - result-row を使ってラベル左 / 値右の1行表示に統一
+  - サマリーは result-row でラベル左 / 値右
+  - 詳細はカードを入れ子にせず、result-detail-entry の行リストで表示
 -->
 <div class="reveal calc-output-panel">
   <div class="calc-output-grid">
     <article class="calc-output-item">
       <div class="result-card">
-        <div id="RESULT_LIST_ID" class="result-pair-list"></div>
+        <div id="RESULT_SUMMARY_ID" class="result-summary" role="button" tabindex="0" aria-expanded="false"
+          aria-controls="RESULT_DETAIL_ID">
+          <div id="RESULT_LIST_ID" class="result-pair-list"></div>
+        </div>
+        <div id="RESULT_DETAIL_ID" class="divider result-divider result-detail-panel is-hidden">
+          <div class="result-detail-section">
+            <p class="result-detail-title">詳細</p>
+            <div id="RESULT_DETAIL_LIST_ID" class="result-detail-list"></div>
+          </div>
+        </div>
       </div>
     </article>
   </div>

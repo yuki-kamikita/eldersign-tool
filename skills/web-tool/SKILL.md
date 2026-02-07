@@ -57,3 +57,5 @@ description: エルダーサイン向けWebツールの新規作成/編集/整�
 - 計算ツール（入力と出力を持つページ）は、出力エリアをページ上部に配置し、`position: sticky` で固定する。
 - 計算ツールの出力エリアはページごとに個別実装せず、共通クラス（`docs/theme.css` 側の出力用クラス）で同じ見た目を使う。
 - 計算ツールの結果表示マークアップと描画処理は、`skills/web-tool/resources/calc-output-snippet.html` と `skills/web-tool/resources/calc-output-snippet.js` を雛形として流用し、ラベル左/値右の同一レイアウトに統一する。
+- 計算ツールの詳細表示は「カード内カード」を禁止し、`result-detail-entry` を使ったシンプルな行リストで表現する（過剰な余白を作らない）。
+- 計算ツールの詳細表示は、`result-detail-title` / `result-detail-list` / `result-detail-entry` / `result-detail-meta` / `result-detail-value` の表記を共通化して使う。

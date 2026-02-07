@@ -264,16 +264,7 @@
 
     .result-grid {
       display: grid;
-      gap: 14px;
-    }
-
-    .result-card {
-      display: grid;
-      gap: 6px;
-      padding: 14px 16px;
-      border-radius: 16px;
-      background: var(--md-sys-surface);
-      border: 1px solid var(--md-sys-outline-variant);
+      gap: 10px;
     }
 
     .card.no-hover:hover {
@@ -281,47 +272,74 @@
       box-shadow: 0 10px 25px var(--md-sys-shadow);
     }
 
-    .result-label {
-      color: var(--md-sys-on-surface-variant);
-      font-size: 0.85rem;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
+    .result-summary {
+      cursor: pointer;
+      user-select: none;
     }
 
-    .result-value {
-      font-size: 1.6rem;
+    .result-summary:focus-visible {
+      outline: 2px solid var(--md-sys-primary);
+      outline-offset: 2px;
+    }
+
+    .result-detail-panel {
+      margin-top: 8px;
+      gap: 6px;
+    }
+
+    .result-detail-panel:not(.is-hidden) {
+      display: grid;
+    }
+
+    .result-divider {
+      margin-top: 6px;
+      padding-top: 8px;
+    }
+
+    .result-detail-list {
+      display: grid;
+      gap: 0;
+    }
+
+    .result-detail-entry {
+      display: grid;
+      gap: 1px;
+      padding: 4px 0;
+    }
+
+    #summary-result-list {
+      gap: 0;
+    }
+
+    #summary-result-list .result-row:not(.is-group-divider) {
+      padding: 4px 0;
+    }
+
+    .result-pair-list .result-row.is-group-divider,
+    .result-detail-entry.is-group-divider {
+      margin-top: 8px;
+      padding: 8px 0 4px;
+      border-top: 1px dashed var(--md-sys-outline-variant);
+    }
+
+    .result-detail-entry .result-row {
+      grid-template-columns: minmax(0, 1fr);
+      align-items: center;
+      gap: 0;
+    }
+
+    .result-detail-meta {
+      font-size: 0.8rem;
+      color: var(--md-sys-on-surface-variant);
+      line-height: 1.3;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .result-compact {
+      font-size: 0.95rem;
       font-weight: 700;
-    }
-
-    .result-meta {
-      font-size: 0.9rem;
-      color: var(--md-sys-on-surface-variant);
-    }
-
-    .result-list {
-      display: grid;
-      gap: 10px;
-      margin: 0;
-      padding: 0;
-      list-style: none;
-    }
-
-    .result-item {
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--md-sys-outline-variant);
-      background: var(--md-sys-surface-variant);
-      display: grid;
-      gap: 4px;
-    }
-
-    .result-item-title {
-      font-weight: 600;
-    }
-
-    .result-item-meta {
-      font-size: 0.85rem;
-      color: var(--md-sys-on-surface-variant);
     }
 
     .note-table {
@@ -376,35 +394,21 @@
       </div>
     </header>
 
-    <section class="reveal">
-      <div class="calc-output-panel">
-        <div class="calc-output-grid">
-          <article class="calc-output-item">
-            <h3>スキル継承率</h3>
-            <div class="result-grid">
-              <div class="result-card">
-                <div class="result-label">通常スキル</div>
-                <ul class="result-list" id="normal-result-list"></ul>
-              </div>
-              <div class="result-card">
-                <div class="result-label">潜在スキル</div>
-                <ul class="result-list" id="latent-result-list"></ul>
-              </div>
+    <div class="reveal calc-output-panel">
+      <div class="calc-output-grid">
+        <article class="calc-output-item">
+          <div class="result-card">
+            <div class="result-summary" id="result-summary" role="button" tabindex="0" aria-expanded="false"
+              aria-controls="result-detail-panel">
+              <div id="summary-result-list" class="result-pair-list"></div>
             </div>
-          </article>
-          <article class="calc-output-item">
-            <h3>潜在スキル発現率</h3>
-            <div class="result-grid">
-              <div class="result-card">
-                <div class="result-label">発現率</div>
-                <div class="result-value" id="appearance-total">-</div>
-                <div class="result-meta" id="appearance-meta">-</div>
-              </div>
+            <div class="divider result-divider result-detail-panel is-hidden" id="result-detail-panel">
+              <div class="result-detail-list" id="detail-result-list"></div>
             </div>
-          </article>
-        </div>
+          </div>
+        </article>
       </div>
-    </section>
+    </div>
 
     <section class="reveal">
       <div class="section-title">
@@ -671,7 +675,7 @@
   </main>
 
   <script src="./tool-common.js?v2" defer></script>
-  <script src="./skill_inherit.js?v3" defer></script>
+  <script src="./skill_inherit.js?v10" defer></script>
   <script src="../footer.js" defer></script>
 </body>
 
