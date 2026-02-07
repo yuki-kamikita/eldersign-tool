@@ -564,7 +564,7 @@
     </section>
   </template>
 
-  <script src="./party_record_legacy_storage.js?v1" defer></script>
+  <script src="./party_record_legacy_storage.js?v2" defer></script>
   <script type="module">
     import {
       firebaseEnv,
@@ -672,17 +672,16 @@
         );
       };
 
-      const readLocalCache = (uid) => {
+      const readLocalCache = (uid, { isAnonymous = false } = {}) => {
         if (!window.EldersignLegacyStorage) return null;
         return window.EldersignLegacyStorage.readLegacyStore(uid, {
           normalizeStore,
-          buildParty,
-          defaultPartyCount: DEFAULT_PARTY_COUNT,
+          isAnonymous,
         });
       };
 
-      const loadStore = async (uid) => {
-        const localStore = readLocalCache(uid);
+      const loadStore = async (uid, { isAnonymous = false } = {}) => {
+        const localStore = readLocalCache(uid, { isAnonymous });
         try {
           const payload = await loadFirestoreDoc([FIRESTORE_COLLECTION, uid]);
           if (payload && payload.store) {
@@ -1315,10 +1314,10 @@
         }
       };
 
-      const initStore = async (uid) => {
+      const initStore = async (uid, { isAnonymous = false } = {}) => {
         if (!uid) return;
         setStatus("Firestoreから読み込み中...");
-        const { store: loadedStore, source } = await loadStore(uid);
+        const { store: loadedStore, source } = await loadStore(uid, { isAnonymous });
         store = loadedStore;
         if (!Number.isFinite(store.partyCount) || store.partyCount < 1) {
           store.partyCount = DEFAULT_PARTY_COUNT;
@@ -1340,7 +1339,7 @@
       };
 
       const initLocalStore = () => {
-        store = readLocalCache(null) || buildDefaultStore();
+        store = readLocalCache(null, { isAnonymous: true }) || buildDefaultStore();
         if (!Number.isFinite(store.partyCount) || store.partyCount < 1) {
           store.partyCount = DEFAULT_PARTY_COUNT;
         }
@@ -1359,9 +1358,9 @@
 
       const migrateIfNeeded = async (fromUid, toUid) => {
         if (!fromUid || !toUid || fromUid === toUid) return;
-        const fromCache = readLocalCache(fromUid);
+        const fromCache = readLocalCache(fromUid, { isAnonymous: true });
         if (!fromCache) return;
-        const remote = await loadStore(toUid);
+        const remote = await loadStore(toUid, { isAnonymous: false });
         if (remote && remote.store && remote.source === "firestore") return;
         try {
           await saveFirestoreDoc([FIRESTORE_COLLECTION, toUid], {
@@ -1389,7 +1388,7 @@
         }
         const ticket = { cancelled: false };
         pendingInit = ticket;
-        await initStore(currentUid);
+        await initStore(currentUid, { isAnonymous: user.isAnonymous });
         if (ticket.cancelled) return;
       };
 
@@ -1433,7 +1432,7 @@
             }
             if (result && result.user && currentUid && result.user.uid !== currentUid) {
               await migrateIfNeeded(currentUid, result.user.uid);
-              await initStore(result.user.uid);
+              await initStore(result.user.uid, { isAnonymous: false });
             }
             setStatus("ログインしました。");
             authPasswordInput.value = "";
@@ -1444,7 +1443,7 @@
                 const result = await signInEmail(input.email, input.password);
                 if (result && result.user && currentUid && result.user.uid !== currentUid) {
                   await migrateIfNeeded(currentUid, result.user.uid);
-                  await initStore(result.user.uid);
+                  await initStore(result.user.uid, { isAnonymous: false });
                 }
                 setStatus("ログインしました。");
                 authPasswordInput.value = "";
@@ -1480,7 +1479,7 @@
             }
             if (result && result.user && currentUid && result.user.uid !== currentUid) {
               await migrateIfNeeded(currentUid, result.user.uid);
-              await initStore(result.user.uid);
+              await initStore(result.user.uid, { isAnonymous: false });
             }
             if (result && result.user) {
               await handleAuthChange(result.user);
