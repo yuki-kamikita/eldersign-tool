@@ -113,6 +113,34 @@
       text-align: right;
     }
 
+    .result-summary {
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .result-summary:focus-visible {
+      outline: 2px solid var(--md-sys-primary);
+      outline-offset: 2px;
+    }
+
+    .result-detail-panel {
+      margin-top: 8px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .result-divider {
+      border-top: 1px solid var(--md-sys-outline-variant);
+      margin-top: 6px;
+      padding-top: 8px;
+    }
+
+    .result-detail-value {
+      font-size: 0.95rem;
+      font-weight: 700;
+      text-align: right;
+    }
+
     .chip-group {
       display: flex;
       flex-wrap: wrap;
@@ -258,6 +286,8 @@
     <section class="reveal">
       <div class="result-panel">
         <div class="result-card">
+          <div class="result-summary" id="result-summary" role="button" tabindex="0" aria-expanded="false"
+            aria-controls="result-detail-panel">
           <div class="result-row">
             <div class="result-label">ダメージ(乱数前)</div>
             <div class="result-value" id="atk-damage-base">-</div>
@@ -269,6 +299,33 @@
           <div class="result-row">
             <div class="result-label">命中率</div>
             <div class="result-value" id="hit-raw">-</div>
+          </div>
+          </div>
+          <div class="result-divider result-detail-panel is-hidden" id="result-detail-panel">
+            <div class="result-row mode-attack">
+              <div class="result-label">スキル強度</div>
+              <div class="result-detail-value" id="detail-skill-power">-</div>
+            </div>
+            <div class="result-row mode-attack">
+              <div class="result-label">防御強度</div>
+              <div class="result-detail-value" id="detail-def-power">-</div>
+            </div>
+            <div class="result-row mode-attack">
+              <div class="result-label">ダメージ補正内訳</div>
+              <div class="result-detail-value" id="detail-damage-meta">-</div>
+            </div>
+            <div class="result-row mode-attack">
+              <div class="result-label">ユニオン補正</div>
+              <div class="result-detail-value" id="detail-union-meta">-</div>
+            </div>
+            <div class="result-row mode-heal is-hidden">
+              <div class="result-label">回復補正内訳</div>
+              <div class="result-detail-value" id="detail-heal-meta">-</div>
+            </div>
+            <div class="result-row">
+              <div class="result-label">命中計算内訳</div>
+              <div class="result-detail-value" id="detail-hit-meta">-</div>
+            </div>
           </div>
         </div>
       </div>
@@ -483,6 +540,14 @@
         atkDamageBase: document.getElementById("atk-damage-base"),
         atkDamageRange: document.getElementById("atk-damage-range"),
         hitRaw: document.getElementById("hit-raw"),
+        detailSkillPower: document.getElementById("detail-skill-power"),
+        detailDefPower: document.getElementById("detail-def-power"),
+        detailDamageMeta: document.getElementById("detail-damage-meta"),
+        detailUnionMeta: document.getElementById("detail-union-meta"),
+        detailHealMeta: document.getElementById("detail-heal-meta"),
+        detailHitMeta: document.getElementById("detail-hit-meta"),
+        resultSummary: document.getElementById("result-summary"),
+        resultDetailPanel: document.getElementById("result-detail-panel"),
       };
 
       function readNumber(input) {
@@ -651,6 +716,17 @@
         const unioned = base * unionMultiplier;
 
         outputs.atkDamageBase.textContent = formatDamage(unioned);
+        outputs.detailSkillPower.textContent = formatNumber(skill.value, 1);
+        outputs.detailDefPower.textContent = formatNumber(defense.value, 1);
+        outputs.detailDamageMeta.textContent = `耐性${formatNumber(ra.resPctP, 1)}%×${formatNumber(
+          ra.resPctA,
+          1
+        )}% 適正${formatNumber(ra.aptPctP, 1)}%×${formatNumber(ra.aptPctA, 1)}% 封${formatNumber(
+          sealMultiplier * 100,
+          1
+        )}% 強化${formatNumber(other * 100, 1)}%`;
+        outputs.detailUnionMeta.textContent = `${formatNumber(unionMultiplier * 100, 1)}%`;
+        outputs.detailHealMeta.textContent = "-";
 
         const minDamage = unioned * RANDOM_MIN;
         const maxDamage = unioned * RANDOM_MAX;
@@ -673,6 +749,17 @@
         const base = coeff * Math.sqrt(avgSource * 0.2) * ra.res * ra.apt * other * sealMultiplier;
         outputs.atkDamageBase.textContent = formatDamage(base);
         outputs.atkDamageRange.textContent = "-";
+        outputs.detailSkillPower.textContent = "-";
+        outputs.detailDefPower.textContent = "-";
+        outputs.detailDamageMeta.textContent = "-";
+        outputs.detailUnionMeta.textContent = "-";
+        outputs.detailHealMeta.textContent = `耐性${formatNumber(ra.resPctP, 1)}%×${formatNumber(
+          ra.resPctA,
+          1
+        )}% 適正${formatNumber(ra.aptPctP, 1)}%×${formatNumber(ra.aptPctA, 1)}% 封${formatNumber(
+          sealMultiplier * 100,
+          1
+        )}% 強化${formatNumber(other * 100, 1)}%`;
       }
 
       function updateHit() {
@@ -698,6 +785,10 @@
         const final = Math.floor(capped);
 
         outputs.hitRaw.textContent = `${formatNumber(final, 0)}%(${formatNumber(corrected, 2)}%)`;
+        outputs.detailHitMeta.textContent = `raw=${formatNumber(raw, 2)} 補正後=${formatNumber(
+          corrected,
+          2
+        )}`;
       }
 
       function updateAll() {
@@ -750,6 +841,14 @@
         document.querySelectorAll(".mode-attack").forEach((el) => {
           el.classList.toggle("is-hidden", !isAttack);
         });
+        document.querySelectorAll(".mode-heal").forEach((el) => {
+          el.classList.toggle("is-hidden", isAttack);
+        });
+      }
+
+      function setResultDetailOpen(open) {
+        outputs.resultDetailPanel.classList.toggle("is-hidden", !open);
+        outputs.resultSummary.setAttribute("aria-expanded", open ? "true" : "false");
       }
 
       Object.values(inputs).forEach((input) => {
@@ -771,7 +870,19 @@
         });
       });
 
+      outputs.resultSummary.addEventListener("click", () => {
+        const isOpen = !outputs.resultDetailPanel.classList.contains("is-hidden");
+        setResultDetailOpen(!isOpen);
+      });
+      outputs.resultSummary.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        const isOpen = !outputs.resultDetailPanel.classList.contains("is-hidden");
+        setResultDetailOpen(!isOpen);
+      });
+
       loadFormState();
+      setResultDetailOpen(false);
       updateAll();
     })();
   </script>
