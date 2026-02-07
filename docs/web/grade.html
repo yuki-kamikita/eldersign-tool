@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="light dark" />
   <title>グレード計算ツール</title>
-  <link rel="stylesheet" href="../theme.css" />
+  <link rel="stylesheet" href="../theme.css?v7" />
   <style>
     .tool-grid {
       display: grid;
@@ -87,21 +87,28 @@
       box-shadow: 0 10px 25px var(--md-sys-shadow);
     }
 
-    .result-card {
+    .result-pair-list {
       display: grid;
-      gap: 10px;
+      gap: 8px;
+    }
+
+    .result-pair-list .result-row {
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 8px;
     }
 
     .result-label {
       color: var(--md-sys-on-surface-variant);
       font-size: 0.9rem;
-      letter-spacing: 0.02em;
-      text-transform: uppercase;
+      letter-spacing: normal;
+      text-transform: none;
     }
 
     .result-value {
-      font-size: 1.8rem;
+      font-size: 1rem;
       font-weight: 700;
+      text-align: right;
     }
 
     .hint {
@@ -123,6 +130,16 @@
       </div>
     </header>
 
+    <div class="reveal calc-output-panel">
+      <div class="calc-output-grid">
+        <article class="calc-output-item">
+          <div class="result-card">
+            <div id="grade-result-list" class="result-pair-list"></div>
+          </div>
+        </article>
+      </div>
+    </div>
+
     <section class="reveal">
       <div class="section-title">
         <h2>入力</h2>
@@ -138,20 +155,6 @@
             <div class="input-row">
               <label for="monster-kind">原種/亜種</label>
               <input id="monster-kind" type="text" placeholder="例: 原種 / 亜種1 / 亜種2" />
-            </div>
-          </div>
-        </article>
-
-        <article class="card no-hover">
-          <h3>評価結果</h3>
-          <div class="result-card">
-            <div>
-              <div class="result-label">評価値</div>
-              <div class="result-value" id="eval-value">-</div>
-            </div>
-            <div>
-              <div class="result-label">現在グレード</div>
-              <div class="result-value" id="grade-value">-</div>
             </div>
           </div>
         </article>
@@ -228,7 +231,8 @@
     </section>
   </main>
 
-  <script src="./grade.js?v2" defer></script>
+  <script src="./tool-common.js?v2" defer></script>
+  <script src="./grade.js?v4" defer></script>
   <script src="../footer.js" defer></script>
 </body>
 

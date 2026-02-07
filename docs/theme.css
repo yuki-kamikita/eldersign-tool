@@ -334,6 +334,42 @@ h1 {
   text-align: right;
 }
 
+.calc-output-panel {
+  position: sticky;
+  top: 8px;
+  z-index: 20;
+  margin: 10px 0 14px;
+}
+
+.calc-output-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.calc-output-item {
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  display: grid;
+  gap: 10px;
+}
+
+.calc-output-item > h3 {
+  margin: 0 0 2px;
+}
+
+.result-pair-list {
+  display: grid;
+  gap: 10px;
+}
+
+.result-pair-item {
+  display: grid;
+  gap: 4px;
+}
+
 .chip-group {
   display: flex;
   flex-wrap: wrap;

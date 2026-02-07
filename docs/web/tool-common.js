@@ -35,4 +35,29 @@
       });
     });
   };
+
+  // ラベル/値ペア配列を受け取り、結果表示DOMを宣言的に再描画する。
+  common.renderResultPairs = (container, pairs, options = {}) => {
+    if (!container) return;
+    const itemClass = options.itemClass || "result-pair-item";
+    const labelClass = options.labelClass || "result-label";
+    const valueClass = options.valueClass || "result-value";
+
+    container.innerHTML = "";
+    (pairs || []).forEach((pair) => {
+      const item = document.createElement("div");
+      item.className = itemClass;
+
+      const label = document.createElement("div");
+      label.className = labelClass;
+      label.textContent = pair && pair.label != null ? String(pair.label) : "";
+
+      const value = document.createElement("div");
+      value.className = valueClass;
+      value.textContent = pair && pair.value != null ? String(pair.value) : "-";
+
+      item.append(label, value);
+      container.appendChild(item);
+    });
+  };
 })();

@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ja">
 
 <head>
@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="light dark" />
   <title>ダメージ計算ツール</title>
-  <link rel="stylesheet" href="../theme.css?v4" />
+  <link rel="stylesheet" href="../theme.css?v7" />
   <style>
     .form-sections {
       display: grid;
@@ -24,14 +24,6 @@
       margin: 0;
     }
 
-    .result-panel {
-      position: sticky;
-      top: 8px;
-      z-index: 5;
-      margin-top: 10px;
-      margin-bottom: 14px;
-    }
-
     .result-summary {
       cursor: pointer;
       user-select: none;
@@ -44,8 +36,11 @@
 
     .result-detail-panel {
       margin-top: 8px;
-      display: grid;
       gap: 8px;
+    }
+
+    .result-detail-panel:not(.is-hidden) {
+      display: grid;
     }
 
     .result-detail-panel .result-row {
@@ -179,49 +174,53 @@
     </header>
 
     <section class="reveal">
-      <div class="result-panel">
-        <div class="result-card">
-          <div class="result-summary" id="result-summary" role="button" tabindex="0" aria-expanded="false"
-            aria-controls="result-detail-panel">
-          <div class="result-row">
-            <div class="result-label">ダメージ(乱数前)</div>
-            <div class="result-value" id="atk-damage-base">-</div>
-          </div>
-          <div class="result-row">
-            <div class="result-label">乱数範囲</div>
-            <div class="result-value" id="atk-damage-range">-</div>
-          </div>
-          <div class="result-row">
-            <div class="result-label">命中率</div>
-            <div class="result-value" id="hit-raw">-</div>
-          </div>
-          </div>
-          <div class="divider result-divider result-detail-panel is-hidden" id="result-detail-panel">
-            <div class="result-row mode-attack">
-              <div class="result-label">スキル強度</div>
-              <div class="result-detail-value" id="detail-skill-power">-</div>
+      <div class="calc-output-panel">
+        <div class="calc-output-grid">
+          <article class="calc-output-item">
+            <div class="result-card">
+              <div class="result-summary" id="result-summary" role="button" tabindex="0" aria-expanded="false"
+                aria-controls="result-detail-panel">
+                <div class="result-row">
+                  <div class="result-label">ダメージ(乱数前)</div>
+                  <div class="result-value" id="atk-damage-base">-</div>
+                </div>
+                <div class="result-row">
+                  <div class="result-label">乱数範囲</div>
+                  <div class="result-value" id="atk-damage-range">-</div>
+                </div>
+                <div class="result-row">
+                  <div class="result-label">命中率</div>
+                  <div class="result-value" id="hit-raw">-</div>
+                </div>
+              </div>
+              <div class="divider result-divider result-detail-panel is-hidden" id="result-detail-panel">
+                <div class="result-row mode-attack">
+                  <div class="result-label">スキル強度</div>
+                  <div class="result-detail-value" id="detail-skill-power">-</div>
+                </div>
+                <div class="result-row mode-attack">
+                  <div class="result-label">防御強度</div>
+                  <div class="result-detail-value" id="detail-def-power">-</div>
+                </div>
+                <div class="result-row mode-attack">
+                  <div class="result-label">ダメージ補正内訳</div>
+                  <div class="result-detail-value" id="detail-damage-meta">-</div>
+                </div>
+                <div class="result-row mode-attack">
+                  <div class="result-label">ユニオン補正</div>
+                  <div class="result-detail-value" id="detail-union-meta">-</div>
+                </div>
+                <div class="result-row mode-heal is-hidden">
+                  <div class="result-label">回復補正内訳</div>
+                  <div class="result-detail-value" id="detail-heal-meta">-</div>
+                </div>
+                <div class="result-row">
+                  <div class="result-label">命中計算内訳</div>
+                  <div class="result-detail-value" id="detail-hit-meta">-</div>
+                </div>
+              </div>
             </div>
-            <div class="result-row mode-attack">
-              <div class="result-label">防御強度</div>
-              <div class="result-detail-value" id="detail-def-power">-</div>
-            </div>
-            <div class="result-row mode-attack">
-              <div class="result-label">ダメージ補正内訳</div>
-              <div class="result-detail-value" id="detail-damage-meta">-</div>
-            </div>
-            <div class="result-row mode-attack">
-              <div class="result-label">ユニオン補正</div>
-              <div class="result-detail-value" id="detail-union-meta">-</div>
-            </div>
-            <div class="result-row mode-heal is-hidden">
-              <div class="result-label">回復補正内訳</div>
-              <div class="result-detail-value" id="detail-heal-meta">-</div>
-            </div>
-            <div class="result-row">
-              <div class="result-label">命中計算内訳</div>
-              <div class="result-detail-value" id="detail-hit-meta">-</div>
-            </div>
-          </div>
+          </article>
         </div>
       </div>
       <div class="form-sections">

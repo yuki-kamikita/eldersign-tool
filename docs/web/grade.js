@@ -1,4 +1,22 @@
 (() => {
+      const common = window.EldersignToolCommon || {};
+      const renderResultPairs = common.renderResultPairs || ((container, pairs) => {
+        if (!container) return;
+        container.innerHTML = "";
+        (pairs || []).forEach((pair) => {
+          const item = document.createElement("div");
+          item.className = "result-pair-item";
+          const label = document.createElement("div");
+          label.className = "result-label";
+          label.textContent = pair && pair.label != null ? String(pair.label) : "";
+          const value = document.createElement("div");
+          value.className = "result-value";
+          value.textContent = pair && pair.value != null ? String(pair.value) : "-";
+          item.append(label, value);
+          container.appendChild(item);
+        });
+      });
+
       const STAT_KEYS = [
         { key: "hp", label: "HP" },
         { key: "atk", label: "攻撃" },
@@ -157,17 +175,17 @@
         const evalRaw = calcEvalFromSumSq(sumSq);
         const evalValue = evalRaw == null ? null : Math.floor(evalRaw * 10) / 10;
         const gradeValue = calcGradeLabel(evalValue);
-
-        const evalEl = getInput("eval-value");
-        const gradeEl = getInput("grade-value");
-
-        if (evalValue == null) {
-          evalEl.textContent = "-";
-          gradeEl.textContent = "-";
-        } else {
-          evalEl.textContent = evalValue.toFixed(1);
-          gradeEl.textContent = gradeValue;
-        }
+        const resultList = getInput("grade-result-list");
+        const evalDisplay = evalValue == null ? "-" : evalValue.toFixed(1);
+        const gradeDisplay = evalValue == null ? "-" : gradeValue;
+        renderResultPairs(
+          resultList,
+          [
+            { label: "評価値", value: evalDisplay },
+            { label: "現在グレード", value: gradeDisplay },
+          ],
+          { itemClass: "result-row" }
+        );
 
         stats.forEach((stat) => {
           const pctEl = pctEls[`pct-${stat.key}`];
