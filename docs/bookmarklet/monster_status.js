@@ -28,8 +28,8 @@
   });
 
   const TARGETS = ["HP", "攻撃", "魔力", "防御", "命中", "敏捷"];
-  const GRADE_TOOL_URL = "https://yuki-kamikita.github.io/eldersign-tool/web/grade.html";
-  // const GRADE_TOOL_URL = "http://localhost:8080/docs/web/grade.html";
+  // const GRADE_TOOL_URL = "https://yuki-kamikita.github.io/eldersign-tool/web/grade.html";
+  const GRADE_TOOL_URL = "http://localhost:8080/docs/web/grade.html";
 
   function getLevelInfo() {
     const h3 =
@@ -154,6 +154,40 @@
   function calcEval(sumSq) {
     const raw = Math.sqrt(sumSq / 6) * 200 + 10;
     return Math.floor(raw * 10) / 10;
+  }
+
+  function formatNumber(value) {
+    if (!isFinite(value)) return "";
+    if (Math.abs(value - Math.round(value)) < 1e-9) return String(Math.round(value));
+    return value.toFixed(1);
+  }
+
+  function getBazaarPriceAny() {
+    const priceNode = document.querySelector("article.checktxt em");
+    if (priceNode) {
+      const m = priceNode.textContent.match(/([\d,]+)\s*Any/i);
+      if (m) return parseInt(m[1].replace(/,/g, ""), 10);
+    }
+
+    const listingNode = document.querySelector("p.belt");
+    if (listingNode) {
+      const m = listingNode.textContent.match(/バザーに\s*([\d,]+)\s*Anyで出品中です/i);
+      if (m) return parseInt(m[1].replace(/,/g, ""), 10);
+    }
+
+    const allText = document.body ? document.body.textContent : "";
+    const textMatch = allText && allText.match(/出品金額は\s*([\d,]+)\s*Any/i);
+    if (textMatch) return parseInt(textMatch[1].replace(/,/g, ""), 10);
+    const listingTextMatch = allText && allText.match(/バザーに\s*([\d,]+)\s*Anyで出品中です/i);
+    if (listingTextMatch) return parseInt(listingTextMatch[1].replace(/,/g, ""), 10);
+
+    const scriptText = [...document.querySelectorAll("script")]
+      .map((s) => s.textContent || "")
+      .join("\n");
+    const scriptMatch = scriptText.match(/confirm\.set\([^)]*?"([\d,]+)\s*Anyで購入します/i);
+    if (scriptMatch) return parseInt(scriptMatch[1].replace(/,/g, ""), 10);
+
+    return null;
   }
 
   function getGrade() {
@@ -389,9 +423,18 @@
     const { lines, sumSq, statInfo } = collectStats(rows, level, G, sqrtG);
     const evalValue = calcEval(sumSq);
     const grade = getGrade();
+    const rarityCoeff = GROWTH_COEFF_BY_RARITY[rarity] ?? 1.0;
+    const deliveryPoint = evalValue * rarityCoeff;
+    const bazaarPriceAny = getBazaarPriceAny();
 
     lines.push("-----------------------");
     lines.push("評価値: " + evalValue.toFixed(1));
+    if (bazaarPriceAny != null && deliveryPoint > 0) {
+      const unitPrice = bazaarPriceAny / deliveryPoint;
+      lines.push(`納品pt: ${formatNumber(deliveryPoint)}（${formatNumber(unitPrice)}any/pt）`);
+    } else {
+      lines.push(`納品pt: ${formatNumber(deliveryPoint)}`);
+    }
 
     if (grade != null) {
       const baseExp = expRarityFactor * grade * ((level + 4) / 5) * 16;
