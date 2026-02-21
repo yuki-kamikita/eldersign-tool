@@ -434,6 +434,7 @@
     const monsterKind = getMonsterKind();
     const rarityCoeff = GROWTH_COEFF_BY_RARITY[rarity] ?? 1.0;
     const deliveryPoint = evalValue * rarityCoeff;
+    const deliveryPointDisplay = Math.floor(deliveryPoint);
     const bazaarPriceAny = getBazaarPriceAny();
 
     if (monsterName && monsterKind) {
@@ -442,11 +443,12 @@
 
     lines.push("-----------------------");
     lines.push("評価値: " + evalValue.toFixed(1));
-    if (bazaarPriceAny != null && deliveryPoint > 0) {
+    if (bazaarPriceAny != null && deliveryPointDisplay > 0) {
       const unitPrice = bazaarPriceAny / deliveryPoint;
-      lines.push(`納品pt: ${formatNumber(deliveryPoint)}（${formatNumber(unitPrice)}any/pt）`);
+      const unitPriceRounded = Math.round(unitPrice);
+      lines.push(`納品pt: ${deliveryPointDisplay} (${unitPriceRounded}any/pt)`);
     } else {
-      lines.push(`納品pt: ${formatNumber(deliveryPoint)}`);
+      lines.push(`納品pt: ${deliveryPointDisplay}`);
     }
 
     if (grade != null) {
