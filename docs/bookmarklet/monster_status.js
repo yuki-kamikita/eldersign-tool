@@ -357,6 +357,13 @@
     function appendLines(target, list) {
       list.forEach((line, index) => {
         if (index > 0) target.appendChild(document.createTextNode("\n"));
+        if (index === 0 && /^\S.*\((原種|亜種[1-3])\)$/.test(line)) {
+          const centered = document.createElement("span");
+          centered.textContent = line;
+          centered.style.cssText = "display:block;text-align:center;";
+          target.appendChild(centered);
+          return;
+        }
         if (gradeUrl && line === "次のグレードになるには") {
           const link = document.createElement("a");
           link.href = gradeUrl;
@@ -423,9 +430,15 @@
     const { lines, sumSq, statInfo } = collectStats(rows, level, G, sqrtG);
     const evalValue = calcEval(sumSq);
     const grade = getGrade();
+    const monsterName = getMonsterName();
+    const monsterKind = getMonsterKind();
     const rarityCoeff = GROWTH_COEFF_BY_RARITY[rarity] ?? 1.0;
     const deliveryPoint = evalValue * rarityCoeff;
     const bazaarPriceAny = getBazaarPriceAny();
+
+    if (monsterName && monsterKind) {
+      lines.unshift(`${monsterName}(${monsterKind})`);
+    }
 
     lines.push("-----------------------");
     lines.push("評価値: " + evalValue.toFixed(1));
