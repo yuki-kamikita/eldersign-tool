@@ -265,6 +265,7 @@
 
     const lines = [];
     let maxAgi = null;
+    let maxHit = null;
     lines.push("-----------------------");
     lines.push(`Lv1->${maxLevel}(最大)時のステータス`);
     for (const label of TARGETS) {
@@ -275,12 +276,19 @@
       const lv1status = info.base + info.bonus
       const maxTotal = Math.floor(lv1status * factor);
       if (label === "敏捷") maxAgi = maxTotal;
+      if (label === "命中") maxHit = maxTotal;
 
       lines.push(
         `${info.name}:${pad5(lv1status)}${lv1status} ->${pad5(maxTotal)}${maxTotal}`
       );
     }
+    if (maxHit != null) {
+      const maxHitRate = Math.sqrt(maxHit);
+      lines.push(`命中率: ${formatNumber(maxHitRate)}`);
+    }
     if (maxAgi != null) {
+      const maxEvasionRate = Math.sqrt(maxAgi);
+      lines.push(`回避率: ${formatNumber(maxEvasionRate)}`);
       const maxActionValue = Math.sqrt(maxAgi * 2000);
       lines.push(`行動値: ${Math.round(maxActionValue)}`);
     }
@@ -350,6 +358,15 @@
     }
 
     return lines;
+  }
+
+  function buildCombatMemoLines() {
+    return [
+      "-----------------------",
+      "最終命中率 = 70 ± √5 * (命中率 * スキル補正 - 回避率)",
+      "→ 命中率と回避率の差4.5ごとに最終命中率およそ10%変動",
+      "行動順 = 行動値 ± ディレイ",
+    ];
   }
 
   function renderPanel(lines, moreLines, gradeUrl) {
@@ -468,7 +485,14 @@
     }
 
     const agiInfo = statInfo["敏捷"];
+    const hitInfo = statInfo["命中"];
+    if (hitInfo) {
+      const hitRate = Math.sqrt(hitInfo.current);
+      lines.push(`命中率: ${formatNumber(hitRate)}`);
+    }
     if (agiInfo) {
+      const evasionRate = Math.sqrt(agiInfo.current);
+      lines.push(`回避率: ${formatNumber(evasionRate)}`);
       const agility = agiInfo.current;
       const actionValue = Math.sqrt(agility * 2000);
       lines.push(`行動値: ${Math.round(actionValue)}`);
@@ -476,7 +500,8 @@
 
     const maxLevelLines = buildMaxLevelLines(statInfo, maxLevel, rarity);
     const nextGradeLines = buildNextGradeLines(statInfo, evalValue);
-    const moreLines = [...maxLevelLines, ...nextGradeLines];
+    const combatMemoLines = buildCombatMemoLines();
+    const moreLines = [...maxLevelLines, ...nextGradeLines, ...combatMemoLines];
     const gradeUrl = buildGradeToolUrl(statInfo);
     renderPanel(lines, moreLines, gradeUrl);
   } catch (e) {
