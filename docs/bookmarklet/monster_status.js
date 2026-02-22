@@ -394,19 +394,64 @@
   function buildCombatMemoLines() {
     return [
       "-----------------------",
-      "最終命中率 = 70 ± √5 * (命中率 * スキル補正 - 回避率)",
-      "→ 命中率と回避率の差4.5ごとに最終命中率およそ10%変動",
-      "行動順 = 行動値 ± ディレイ",
+      "命中と回避の差4.5≒命中率10%",
     ];
   }
 
-  function renderPanel(lines, moreLines, gradeUrl) {
+  function renderPanel(lines, moreLines, gradeUrl, panelTitle) {
+    const overlayPadTop = 10;
+    const overlayPadBottom = 10;
+    const overlay = document.createElement("div");
+    overlay.style.cssText =
+      "position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.45);" +
+      `display:flex;justify-content:flex-end;align-items:flex-start;padding:${overlayPadTop}px 10px ${overlayPadBottom}px 10px;`;
+
     const box = document.createElement("div");
     box.style.cssText =
-      "position:fixed;top:10px;right:10px;z-index:99999;background:rgba(0,0,0,.8);" +
-      "color:#fff;padding:10px 15px;border-radius:8px;font-family:monospace;" +
-      "color:#fff;padding:10px 15px;border-radius:8px;font-family:monospace;" +
-      "font-size:14px;max-width:90%;";
+      "background:rgba(0,0,0,.6);color:#fff;border-radius:8px;font-family:monospace;" +
+      "font-size:14px;width:fit-content;max-width:min(92vw,420px);display:flex;flex-direction:column;" +
+      "box-shadow:0 8px 24px rgba(0,0,0,.35);position:relative;";
+    overlay.appendChild(box);
+
+    const header = document.createElement("div");
+    header.style.cssText =
+      "display:flex;justify-content:space-between;align-items:center;" +
+      "padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.2);";
+    box.appendChild(header);
+
+    const title = document.createElement("div");
+    title.textContent = panelTitle || "モンスター情報";
+    title.style.cssText = "";
+    header.appendChild(title);
+
+    const closeBtn = document.createElement("span");
+    closeBtn.setAttribute("role", "button");
+    closeBtn.setAttribute("tabindex", "0");
+    closeBtn.title = "閉じる";
+    closeBtn.style.cssText =
+      "position:absolute;top:0px;right:0px;cursor:pointer;" +
+      "color:#fff;font-size:16px;line-height:16px;padding:6px 10px;";
+    closeBtn.innerHTML =
+      '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" ' +
+      'fill="currentColor"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>';
+    box.appendChild(closeBtn);
+
+    const content = document.createElement("div");
+    content.style.cssText =
+      "padding:10px 12px;overflow-y:auto;overflow-x:hidden;" +
+      "-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;";
+    box.appendChild(content);
+
+    function applyModalSize() {
+      const viewportH =
+        (window.visualViewport && Number.isFinite(window.visualViewport.height)
+          ? window.visualViewport.height
+          : window.innerHeight) || 0;
+      const maxH = Math.max(180, Math.floor(viewportH - overlayPadTop - overlayPadBottom));
+      box.style.maxHeight = `${maxH}px`;
+    }
+    applyModalSize();
+    window.addEventListener("resize", applyModalSize);
 
     function appendLines(target, list) {
       list.forEach((line, index) => {
@@ -436,13 +481,13 @@
     }
 
     const pre = document.createElement("pre");
-    pre.style.cssText = "margin:0;white-space:pre;";
+    pre.style.cssText = "margin:0;white-space:pre-wrap;word-break:break-word;";
     appendLines(pre, lines);
-    box.appendChild(pre);
+    content.appendChild(pre);
 
     const toggleWrap = document.createElement("div");
-    toggleWrap.style.cssText = "margin-top:8px;text-align:right;";
-    box.appendChild(toggleWrap);
+    toggleWrap.style.cssText = "margin-top:8px;text-align:right;padding-bottom:4px;";
+    content.appendChild(toggleWrap);
 
     const toggle = document.createElement("a");
     toggle.href = "#";
@@ -455,18 +500,33 @@
       e.preventDefault();
       if (opened) return;
       const nextPre = document.createElement("pre");
-      nextPre.style.cssText = "margin:8px 0 0;white-space:pre;";
+      nextPre.style.cssText = "margin:8px 0 0;white-space:pre-wrap;word-break:break-word;";
       appendLines(nextPre, moreLines);
-      box.appendChild(nextPre);
+      content.appendChild(nextPre);
       toggleWrap.remove();
       opened = true;
     };
 
-    box.onclick = (e) => {
-      if (e.target === toggle) return;
-      box.remove();
+    function closePanel() {
+      window.removeEventListener("resize", applyModalSize);
+      overlay.remove();
+    }
+
+    closeBtn.onclick = (e) => {
+      e.stopPropagation();
+      closePanel();
     };
-    document.body.appendChild(box);
+    closeBtn.onkeydown = (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.stopPropagation();
+        closePanel();
+      }
+    };
+    overlay.onclick = (e) => {
+      if (e.target !== overlay) return;
+      closePanel();
+    };
+    document.body.appendChild(overlay);
   }
 
   try {
@@ -491,9 +551,10 @@
     const deliveryPointDisplay = Math.floor(deliveryPoint);
     const bazaarPriceAny = getBazaarPriceAny();
 
-    if (monsterName && monsterKind) {
-      lines.unshift(`${monsterName}(${monsterKind})`);
-    }
+    const levelSuffix = Number.isFinite(level) ? ` Lv${level}` : "";
+    const panelTitle = monsterName
+      ? `${monsterName}${monsterKind ? `(${monsterKind})` : ""}${levelSuffix}`
+      : `モンスター情報${levelSuffix}`;
 
     lines.push("-----------------------");
     lines.push("現在ステータス準拠");
@@ -539,7 +600,7 @@
     const combatMemoLines = buildCombatMemoLines();
     const moreLines = [...maxLevelLines, ...nextGradeLines, ...combatMemoLines];
     const gradeUrl = buildGradeToolUrl(statInfo);
-    renderPanel(lines, moreLines, gradeUrl);
+    renderPanel(lines, moreLines, gradeUrl, panelTitle);
   } catch (e) {
     alert("エラー: " + e.message);
   }
