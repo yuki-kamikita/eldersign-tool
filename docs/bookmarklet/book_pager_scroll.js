@@ -35,7 +35,14 @@
     return null;
   }
 
-  function getCurrentPageIndex() {
+  function getCurrentPageIndex(pagerContainer) {
+    const currentLabel = pagerContainer?.querySelector("li.on a, a.on")?.textContent?.trim();
+    if (currentLabel && /^\d+$/.test(currentLabel)) {
+      const page = parseInt(currentLabel, 10);
+      if (Number.isFinite(page) && page > 0) {
+        return page - 1;
+      }
+    }
     try {
       const url = new URL(window.location.href);
       const raw = url.searchParams.get("pg");
@@ -46,13 +53,19 @@
     }
   }
 
-  function buildUrlForPage(index) {
-    const url = new URL(window.location.href);
+  function resolvePagerBaseUrl(pagerContainer) {
+    const link = pagerContainer?.querySelector("a[href*='pg=']");
+    if (link && link.href) return link.href;
+    return window.location.href;
+  }
+
+  function buildUrlForPage(index, baseHref) {
+    const url = new URL(baseHref || window.location.href);
     url.searchParams.set("pg", String(index));
     return url.toString();
   }
 
-  function createNavButton(label, targetIndex) {
+  function createNavButton(label, targetIndex, baseHref) {
     const div = document.createElement("div");
     div.className = "pg";
     div.style.flex = "0 0 auto";
@@ -60,7 +73,7 @@
     const a = document.createElement("a");
     a.textContent = label;
     if (targetIndex !== null) {
-      a.href = buildUrlForPage(targetIndex);
+      a.href = buildUrlForPage(targetIndex, baseHref);
     }
     div.appendChild(a);
     return div;
@@ -186,7 +199,8 @@
     }
 
     const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
-    const currentPageIndex = getCurrentPageIndex();
+    const currentPageIndex = getCurrentPageIndex(pagerContainer);
+    const baseHref = resolvePagerBaseUrl(pagerContainer);
     const pgContainer = pagerContainer;
 
     const isNavPager =
@@ -204,7 +218,13 @@
         const index = page - 1;
         const isCurrent = index === currentPageIndex;
         scrollWrap.appendChild(
-          createNavPagerButton(String(page), buildUrlForPage(index), isCurrent ? "on" : "", isCurrent, false)
+          createNavPagerButton(
+            String(page),
+            buildUrlForPage(index, baseHref),
+            isCurrent ? "on" : "",
+            isCurrent,
+            false
+          )
         );
       }
       const scrollLi = document.createElement("li");
@@ -213,7 +233,7 @@
       list.appendChild(
         createNavPagerButton(
           "«",
-          prevIndex == null ? null : buildUrlForPage(prevIndex),
+          prevIndex == null ? null : buildUrlForPage(prevIndex, baseHref),
           "prev",
           false,
           prevIndex == null
@@ -223,7 +243,7 @@
       list.appendChild(
         createNavPagerButton(
           "»",
-          nextIndex == null ? null : buildUrlForPage(nextIndex),
+          nextIndex == null ? null : buildUrlForPage(nextIndex, baseHref),
           "next",
           false,
           nextIndex == null
@@ -244,15 +264,15 @@
         if (index === currentPageIndex) {
           a.className = "on";
         } else {
-          a.href = buildUrlForPage(index);
+          a.href = buildUrlForPage(index, baseHref);
         }
         div.appendChild(a);
         scrollWrap.appendChild(div);
       }
       applyScrollStyle(pgContainer, scrollWrap);
-      pgContainer.appendChild(createNavButton("«", prevIndex));
+      pgContainer.appendChild(createNavButton("«", prevIndex, baseHref));
       pgContainer.appendChild(scrollWrap);
-      pgContainer.appendChild(createNavButton("»", nextIndex));
+      pgContainer.appendChild(createNavButton("»", nextIndex, baseHref));
     }
 
     if (footer) footer.dataset[MARKER] = "1";
