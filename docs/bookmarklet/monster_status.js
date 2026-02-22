@@ -28,8 +28,8 @@
   });
 
   const TARGETS = ["HP", "攻撃", "魔力", "防御", "命中", "敏捷"];
-  // const GRADE_TOOL_URL = "https://yuki-kamikita.github.io/eldersign-tool/web/grade.html";
-  const GRADE_TOOL_URL = "http://localhost:8080/docs/web/grade.html";
+  const GRADE_TOOL_URL = "https://yuki-kamikita.github.io/eldersign-tool/web/grade.html";
+  // const GRADE_TOOL_URL = "http://localhost:8080/docs/web/grade.html";
 
   function getLevelInfo() {
     const h3 =
@@ -154,6 +154,37 @@
   function calcEval(sumSq) {
     const raw = Math.sqrt(sumSq / 6) * 200 + 10;
     return Math.floor(raw * 10) / 10;
+  }
+
+  function getSourceRarityForLatent(rarity, monsterKind) {
+    const isSubspecies = typeof monsterKind === "string" && monsterKind.startsWith("亜種");
+    if (!isSubspecies) return rarity;
+    if (rarity === RARITY.PLATINUM) return RARITY.GOLD;
+    if (rarity === RARITY.GOLD) return RARITY.SILVER;
+    if (rarity === RARITY.SILVER) return RARITY.BRONZE;
+    return RARITY.BRONZE;
+  }
+
+  function getLatentSkillAlpha(rarity, monsterKind) {
+    const sourceRarity = getSourceRarityForLatent(rarity, monsterKind);
+    if (sourceRarity === RARITY.BRONZE) return 5;
+    if (sourceRarity === RARITY.SILVER) return 2;
+    return 0;
+  }
+
+  function calcLatentSkillRate(level, maxLevel, rarity, monsterKind) {
+    if (!Number.isFinite(level) || !Number.isFinite(maxLevel) || maxLevel <= 0) {
+      return null;
+    }
+    const alpha = getLatentSkillAlpha(rarity, monsterKind);
+    return (level / maxLevel) * 100 + alpha;
+  }
+
+  function formatTrunc1(value) {
+    if (!isFinite(value)) return "";
+    const trunc = Math.trunc(value * 10) / 10;
+    if (Math.abs(trunc - Math.round(trunc)) < 1e-9) return String(Math.round(trunc));
+    return trunc.toFixed(1);
   }
 
   function formatNumber(value) {
@@ -475,16 +506,8 @@
       lines.push(`納品pt: ${deliveryPointDisplay}`);
     }
 
-    if (grade != null) {
-      const baseExp = expRarityFactor * grade * ((level + 4) / 5) * 16;
-      const expO = Math.floor(baseExp);
-      const expS = Math.floor(baseExp * 1.125);
-      lines.push(`経験値: 異${expO} / 同${expS}`);
-    } else {
-      lines.push("経験値: 取得失敗");
-    }
-
     const agiInfo = statInfo["敏捷"];
+    const currentStatusTailLines = [];
     const hitInfo = statInfo["命中"];
     if (hitInfo) {
       const hitRate = Math.sqrt(hitInfo.current);
@@ -496,7 +519,20 @@
       const agility = agiInfo.current;
       const actionValue = Math.sqrt(agility * 2000);
       lines.push(`行動値: ${Math.round(actionValue)}`);
+      if (grade != null) {
+        const baseExp = expRarityFactor * grade * ((level + 4) / 5) * 16;
+        const expO = Math.floor(baseExp);
+        const expS = Math.floor(baseExp * 1.125);
+        currentStatusTailLines.push(`経験値: 異${expO} / 同${expS}`);
+      } else {
+        currentStatusTailLines.push("経験値: 取得失敗");
+      }
+      const latentRateCurrent = calcLatentSkillRate(level, maxLevel, rarity, monsterKind);
+      if (latentRateCurrent != null) {
+        currentStatusTailLines.push(`潜在発現率: ${formatTrunc1(latentRateCurrent)}%`);
+      }
     }
+    lines.push(...currentStatusTailLines);
 
     const maxLevelLines = buildMaxLevelLines(statInfo, maxLevel, rarity);
     const nextGradeLines = buildNextGradeLines(statInfo, evalValue);
