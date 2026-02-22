@@ -16,7 +16,30 @@
       if (nav) return nav;
     }
     const navFallback = document.querySelector("nav.pager");
-    return navFallback || null;
+    if (navFallback) return navFallback;
+
+    const onAnchor = document.querySelector("div.pg a.on");
+    if (onAnchor) {
+      const container = onAnchor.closest("div.pg")?.parentElement;
+      if (container) return container;
+    }
+
+    const parents = [...document.querySelectorAll("div.pg")]
+      .map((pg) => pg.parentElement)
+      .filter((parent) => !!parent);
+    const uniqueParents = [...new Set(parents)];
+    let best = null;
+    let bestCount = 0;
+    for (const parent of uniqueParents) {
+      const count = [...parent.children].filter(
+        (child) => child.tagName && child.tagName.toLowerCase() === "div" && child.classList.contains("pg")
+      ).length;
+      if (count > bestCount) {
+        best = parent;
+        bestCount = count;
+      }
+    }
+    return bestCount >= 3 ? best : null;
   }
 
   function findTotalCount(footer) {
@@ -57,6 +80,16 @@
     const link = pagerContainer?.querySelector("a[href*='pg=']");
     if (link && link.href) return link.href;
     return window.location.href;
+  }
+
+  function findMaxVisiblePage(pagerContainer) {
+    const pageNumbers = [...(pagerContainer?.querySelectorAll("a") || [])]
+      .map((a) => (a.textContent || "").trim())
+      .filter((text) => /^\d+$/.test(text))
+      .map((text) => parseInt(text, 10))
+      .filter((num) => Number.isFinite(num) && num > 0);
+    if (!pageNumbers.length) return null;
+    return Math.max(...pageNumbers);
   }
 
   function buildUrlForPage(index, baseHref) {
@@ -187,19 +220,25 @@
       alert("ページャーが見つかりません");
       return;
     }
-    if (footer && footer.dataset[MARKER] === "1") {
+    if ((footer && footer.dataset[MARKER] === "1") || pagerContainer.dataset[MARKER] === "1") {
       alert("すでに適用済みです");
       return;
     }
 
     const totalCount = findTotalCount(footer || document.body);
-    if (!totalCount || !Number.isFinite(totalCount)) {
+    const maxVisiblePage = findMaxVisiblePage(pagerContainer);
+    let totalPages = null;
+    if (totalCount && Number.isFinite(totalCount)) {
+      totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
+    } else if (maxVisiblePage && Number.isFinite(maxVisiblePage)) {
+      // 総数が不明な場合は、若い方向を1始まりにし、大きい方向は現表示範囲を上限にする
+      totalPages = Math.max(1, maxVisiblePage);
+    } else {
       alert("総数が取得できません");
       return;
     }
-
-    const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
     const currentPageIndex = getCurrentPageIndex(pagerContainer);
+    totalPages = Math.max(totalPages, currentPageIndex + 1);
     const baseHref = resolvePagerBaseUrl(pagerContainer);
     const pgContainer = pagerContainer;
 
@@ -276,6 +315,7 @@
     }
 
     if (footer) footer.dataset[MARKER] = "1";
+    pagerContainer.dataset[MARKER] = "1";
     requestAnimationFrame(() => centerCurrent(scrollWrap));
   } catch (error) {
     alert("エラー: " + error.message);
