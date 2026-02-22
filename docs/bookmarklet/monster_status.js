@@ -145,7 +145,7 @@
       lines.push(`${name}:${basePad}${base}+${bonusPad}${bonus} (${pctStr}%)`);
 
       sumSq += r * r;
-      statInfo[label] = { name, base, bonus, r };
+      statInfo[label] = { name, base, bonus, r, current: currentTotal };
     });
 
     return { lines, sumSq, statInfo };
@@ -264,6 +264,7 @@
     const pad4 = (n) => " ".repeat(Math.max(0, 4 - String(n).length));
 
     const lines = [];
+    let maxAgi = null;
     lines.push("-----------------------");
     lines.push(`Lv1->${maxLevel}(最大)時のステータス`);
     for (const label of TARGETS) {
@@ -273,10 +274,15 @@
       const factor = label === "HP" ? sqrtGmax : Gmax;
       const lv1status = info.base + info.bonus
       const maxTotal = Math.floor(lv1status * factor);
+      if (label === "敏捷") maxAgi = maxTotal;
 
       lines.push(
         `${info.name}:${pad5(lv1status)}${lv1status} ->${pad5(maxTotal)}${maxTotal}`
       );
+    }
+    if (maxAgi != null) {
+      const maxActionValue = Math.sqrt(maxAgi * 2000);
+      lines.push(`行動値: ${Math.round(maxActionValue)}`);
     }
 
     return lines;
@@ -442,6 +448,7 @@
     }
 
     lines.push("-----------------------");
+    lines.push("現在ステータス準拠");
     lines.push("評価値: " + evalValue.toFixed(1));
     if (bazaarPriceAny != null && deliveryPointDisplay > 0) {
       const unitPrice = bazaarPriceAny / deliveryPoint;
@@ -458,6 +465,13 @@
       lines.push(`経験値: 異${expO} / 同${expS}`);
     } else {
       lines.push("経験値: 取得失敗");
+    }
+
+    const agiInfo = statInfo["敏捷"];
+    if (agiInfo) {
+      const agility = agiInfo.current;
+      const actionValue = Math.sqrt(agility * 2000);
+      lines.push(`行動値: ${Math.round(actionValue)}`);
     }
 
     const maxLevelLines = buildMaxLevelLines(statInfo, maxLevel, rarity);
