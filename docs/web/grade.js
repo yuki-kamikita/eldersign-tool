@@ -40,6 +40,47 @@
         return Number.isFinite(v) ? v : 0;
       }
 
+      // URLクエリを初期値として入力欄へ反映する。
+      function applyInitialValuesFromQuery() {
+        const params = new URLSearchParams(window.location.search || "");
+        const textMap = {
+          "monster-name": "name",
+          "monster-kind": "kind",
+        };
+        const statMap = {
+          hp: { base: "base-hp", bonus: "bonus-hp" },
+          atk: { base: "base-atk", bonus: "bonus-atk" },
+          mag: { base: "base-mag", bonus: "bonus-mag" },
+          def: { base: "base-def", bonus: "bonus-def" },
+          hit: { base: "base-hit", bonus: "bonus-hit" },
+          agi: { base: "base-agi", bonus: "bonus-agi" },
+        };
+
+        Object.entries(textMap).forEach(([inputId, paramKey]) => {
+          const input = inputs[inputId] || getInput(inputId);
+          if (!input) return;
+          const value = params.get(paramKey);
+          if (value == null || value === "") return;
+          input.value = value;
+        });
+
+        Object.entries(statMap).forEach(([key, idSet]) => {
+          const baseValue = params.get(`${key}_base`);
+          const bonusValue = params.get(`${key}_bonus`);
+          const baseInput = inputs[idSet.base] || getInput(idSet.base);
+          const bonusInput = inputs[idSet.bonus] || getInput(idSet.bonus);
+
+          if (baseInput && baseValue != null && baseValue !== "") {
+            const n = Number(baseValue);
+            if (Number.isFinite(n)) baseInput.value = String(n);
+          }
+          if (bonusInput && bonusValue != null && bonusValue !== "") {
+            const n = Number(bonusValue);
+            if (Number.isFinite(n)) bonusInput.value = String(n);
+          }
+        });
+      }
+
       // 評価値をグレード表記へ変換する。
       function calcGradeLabel(evalValue) {
         if (evalValue == null) return "-";
@@ -233,5 +274,6 @@
       }
 
       bindInputs();
+      applyInitialValuesFromQuery();
       updateResult();
     })();
