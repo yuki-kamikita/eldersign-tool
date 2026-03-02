@@ -16,7 +16,30 @@
       if (nav) return nav;
     }
     const navFallback = document.querySelector("nav.pager");
-    return navFallback || null;
+    if (navFallback) return navFallback;
+
+    const onAnchor = document.querySelector("div.pg a.on");
+    if (onAnchor) {
+      const container = onAnchor.closest("div.pg")?.parentElement;
+      if (container) return container;
+    }
+
+    const parents = [...document.querySelectorAll("div.pg")]
+      .map((pg) => pg.parentElement)
+      .filter((parent) => !!parent);
+    const uniqueParents = [...new Set(parents)];
+    let best = null;
+    let bestCount = 0;
+    for (const parent of uniqueParents) {
+      const count = [...parent.children].filter(
+        (child) => child.tagName && child.tagName.toLowerCase() === "div" && child.classList.contains("pg")
+      ).length;
+      if (count > bestCount) {
+        best = parent;
+        bestCount = count;
+      }
+    }
+    return bestCount >= 3 ? best : null;
   }
 
   function findTotalCount(footer) {
@@ -35,7 +58,14 @@
     return null;
   }
 
-  function getCurrentPageIndex() {
+  function getCurrentPageIndex(pagerContainer) {
+    const currentLabel = pagerContainer?.querySelector("li.on a, a.on")?.textContent?.trim();
+    if (currentLabel && /^\d+$/.test(currentLabel)) {
+      const page = parseInt(currentLabel, 10);
+      if (Number.isFinite(page) && page > 0) {
+        return page - 1;
+      }
+    }
     try {
       const url = new URL(window.location.href);
       const raw = url.searchParams.get("pg");
@@ -46,13 +76,83 @@
     }
   }
 
-  function buildUrlForPage(index) {
-    const url = new URL(window.location.href);
+  function resolvePagerBaseUrl(pagerContainer) {
+    const link = pagerContainer?.querySelector("a[href*='pg=']");
+    if (link && link.href) return link.href;
+    return window.location.href;
+  }
+
+  function findMaxVisiblePage(pagerContainer) {
+    const pageNumbers = [...(pagerContainer?.querySelectorAll("a") || [])]
+      .map((a) => (a.textContent || "").trim())
+      .filter((text) => /^\d+$/.test(text))
+      .map((text) => parseInt(text, 10))
+      .filter((num) => Number.isFinite(num) && num > 0);
+    if (!pageNumbers.length) return null;
+    return Math.max(...pageNumbers);
+  }
+
+  function buildPageListWhenUnknownTotal(currentPageIndex, maxVisiblePage) {
+    const HARD_MAX_PAGE = 100;
+    const STEP = 5;
+    const pages = [];
+    const sequentialMax = Math.max(1, Math.min(maxVisiblePage || 1, HARD_MAX_PAGE));
+    for (let page = 1; page <= sequentialMax; page += 1) {
+      pages.push(page);
+    }
+
+    let jumpStart = Math.floor(sequentialMax / STEP) * STEP;
+    if (jumpStart < sequentialMax) jumpStart += STEP;
+    if (jumpStart < STEP) jumpStart = STEP;
+    for (let page = jumpStart; page <= HARD_MAX_PAGE; page += STEP) {
+      if (!pages.includes(page)) pages.push(page);
+    }
+
+    const currentPage = currentPageIndex + 1;
+    if (currentPage > 0 && currentPage <= HARD_MAX_PAGE && !pages.includes(currentPage)) {
+      pages.push(currentPage);
+      pages.sort((a, b) => a - b);
+    }
+    return { pages, sequentialMax };
+  }
+
+  function createGapItem(isNavPager) {
+    if (isNavPager) {
+      const li = document.createElement("li");
+      li.className = "eld-pg-gap";
+      li.style.flex = "0 0 auto";
+      li.style.minWidth = "42px";
+      const span = document.createElement("span");
+      span.textContent = "...";
+      span.style.display = "block";
+      span.style.textAlign = "center";
+      span.style.lineHeight = "30px";
+      span.style.opacity = "0.7";
+      li.appendChild(span);
+      return li;
+    }
+
+    const div = document.createElement("div");
+    div.className = "pg eld-pg-gap";
+    div.style.flex = "0 0 auto";
+    div.style.minWidth = "42px";
+    const span = document.createElement("span");
+    span.textContent = "...";
+    span.style.display = "block";
+    span.style.textAlign = "center";
+    span.style.lineHeight = "30px";
+    span.style.opacity = "0.7";
+    div.appendChild(span);
+    return div;
+  }
+
+  function buildUrlForPage(index, baseHref) {
+    const url = new URL(baseHref || window.location.href);
     url.searchParams.set("pg", String(index));
     return url.toString();
   }
 
-  function createNavButton(label, targetIndex) {
+  function createNavButton(label, targetIndex, baseHref) {
     const div = document.createElement("div");
     div.className = "pg";
     div.style.flex = "0 0 auto";
@@ -60,7 +160,7 @@
     const a = document.createElement("a");
     a.textContent = label;
     if (targetIndex !== null) {
-      a.href = buildUrlForPage(targetIndex);
+      a.href = buildUrlForPage(targetIndex, baseHref);
     }
     div.appendChild(a);
     return div;
@@ -174,19 +274,41 @@
       alert("ページャーが見つかりません");
       return;
     }
-    if (footer && footer.dataset[MARKER] === "1") {
+    if ((footer && footer.dataset[MARKER] === "1") || pagerContainer.dataset[MARKER] === "1") {
       alert("すでに適用済みです");
       return;
     }
 
     const totalCount = findTotalCount(footer || document.body);
-    if (!totalCount || !Number.isFinite(totalCount)) {
+    const maxVisiblePage = findMaxVisiblePage(pagerContainer);
+    const isKnownTotal = totalCount && Number.isFinite(totalCount);
+    if (!isKnownTotal && !(maxVisiblePage && Number.isFinite(maxVisiblePage))) {
       alert("総数が取得できません");
       return;
     }
-
-    const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
-    const currentPageIndex = getCurrentPageIndex();
+    const currentPageIndex = getCurrentPageIndex(pagerContainer);
+    let unknownBoundaryPage = null;
+    const pageList = isKnownTotal
+      ? (() => {
+          const pages = Array.from(
+            { length: Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE)) },
+            (_, i) => i + 1
+          );
+          const currentPage = currentPageIndex + 1;
+          if (currentPage > pages.length) {
+            for (let page = pages.length + 1; page <= currentPage; page += 1) {
+              pages.push(page);
+            }
+          }
+          return pages;
+        })()
+      : (() => {
+          const unknown = buildPageListWhenUnknownTotal(currentPageIndex, maxVisiblePage);
+          unknownBoundaryPage = unknown.pages.find((page) => page > unknown.sequentialMax) || null;
+          return unknown.pages;
+        })();
+    const maxPageNumber = pageList.length ? Math.max(...pageList) : currentPageIndex + 1;
+    const baseHref = resolvePagerBaseUrl(pagerContainer);
     const pgContainer = pagerContainer;
 
     const isNavPager =
@@ -195,16 +317,25 @@
     scrollWrap.className = "eld-pg-scroll";
 
     const prevIndex = currentPageIndex > 0 ? currentPageIndex - 1 : null;
-    const nextIndex = currentPageIndex + 1 < totalPages ? currentPageIndex + 1 : null;
+    const nextIndex = currentPageIndex + 1 < maxPageNumber ? currentPageIndex + 1 : null;
 
     pgContainer.innerHTML = "";
     if (isNavPager) {
       const list = document.createElement("ul");
-      for (let page = 1; page <= totalPages; page += 1) {
+      for (const page of pageList) {
+        if (!isKnownTotal && unknownBoundaryPage && page === unknownBoundaryPage) {
+          scrollWrap.appendChild(createGapItem(true));
+        }
         const index = page - 1;
         const isCurrent = index === currentPageIndex;
         scrollWrap.appendChild(
-          createNavPagerButton(String(page), buildUrlForPage(index), isCurrent ? "on" : "", isCurrent, false)
+          createNavPagerButton(
+            String(page),
+            buildUrlForPage(index, baseHref),
+            isCurrent ? "on" : "",
+            isCurrent,
+            false
+          )
         );
       }
       const scrollLi = document.createElement("li");
@@ -213,7 +344,7 @@
       list.appendChild(
         createNavPagerButton(
           "«",
-          prevIndex == null ? null : buildUrlForPage(prevIndex),
+          prevIndex == null ? null : buildUrlForPage(prevIndex, baseHref),
           "prev",
           false,
           prevIndex == null
@@ -223,7 +354,7 @@
       list.appendChild(
         createNavPagerButton(
           "»",
-          nextIndex == null ? null : buildUrlForPage(nextIndex),
+          nextIndex == null ? null : buildUrlForPage(nextIndex, baseHref),
           "next",
           false,
           nextIndex == null
@@ -232,7 +363,10 @@
       applyNavPagerStyle(pgContainer, list, scrollWrap, scrollLi);
       pgContainer.appendChild(list);
     } else {
-      for (let page = 1; page <= totalPages; page += 1) {
+      for (const page of pageList) {
+        if (!isKnownTotal && unknownBoundaryPage && page === unknownBoundaryPage) {
+          scrollWrap.appendChild(createGapItem(false));
+        }
         const index = page - 1;
         const div = document.createElement("div");
         div.className = "pg";
@@ -244,18 +378,19 @@
         if (index === currentPageIndex) {
           a.className = "on";
         } else {
-          a.href = buildUrlForPage(index);
+          a.href = buildUrlForPage(index, baseHref);
         }
         div.appendChild(a);
         scrollWrap.appendChild(div);
       }
       applyScrollStyle(pgContainer, scrollWrap);
-      pgContainer.appendChild(createNavButton("«", prevIndex));
+      pgContainer.appendChild(createNavButton("«", prevIndex, baseHref));
       pgContainer.appendChild(scrollWrap);
-      pgContainer.appendChild(createNavButton("»", nextIndex));
+      pgContainer.appendChild(createNavButton("»", nextIndex, baseHref));
     }
 
     if (footer) footer.dataset[MARKER] = "1";
+    pagerContainer.dataset[MARKER] = "1";
     requestAnimationFrame(() => centerCurrent(scrollWrap));
   } catch (error) {
     alert("エラー: " + error.message);

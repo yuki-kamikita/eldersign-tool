@@ -145,7 +145,7 @@
       lines.push(`${name}:${basePad}${base}+${bonusPad}${bonus} (${pctStr}%)`);
 
       sumSq += r * r;
-      statInfo[label] = { name, base, bonus, r };
+      statInfo[label] = { name, base, bonus, r, current: currentTotal };
     });
 
     return { lines, sumSq, statInfo };
@@ -154,6 +154,71 @@
   function calcEval(sumSq) {
     const raw = Math.sqrt(sumSq / 6) * 200 + 10;
     return Math.floor(raw * 10) / 10;
+  }
+
+  function getSourceRarityForLatent(rarity, monsterKind) {
+    const isSubspecies = typeof monsterKind === "string" && monsterKind.startsWith("亜種");
+    if (!isSubspecies) return rarity;
+    if (rarity === RARITY.PLATINUM) return RARITY.GOLD;
+    if (rarity === RARITY.GOLD) return RARITY.SILVER;
+    if (rarity === RARITY.SILVER) return RARITY.BRONZE;
+    return RARITY.BRONZE;
+  }
+
+  function getLatentSkillAlpha(rarity, monsterKind) {
+    const sourceRarity = getSourceRarityForLatent(rarity, monsterKind);
+    if (sourceRarity === RARITY.BRONZE) return 5;
+    if (sourceRarity === RARITY.SILVER) return 2;
+    return 0;
+  }
+
+  function calcLatentSkillRate(level, maxLevel, rarity, monsterKind) {
+    if (!Number.isFinite(level) || !Number.isFinite(maxLevel) || maxLevel <= 0) {
+      return null;
+    }
+    const alpha = getLatentSkillAlpha(rarity, monsterKind);
+    return (level / maxLevel) * 100 + alpha;
+  }
+
+  function formatTrunc1(value) {
+    if (!isFinite(value)) return "";
+    const trunc = Math.trunc(value * 10) / 10;
+    if (Math.abs(trunc - Math.round(trunc)) < 1e-9) return String(Math.round(trunc));
+    return trunc.toFixed(1);
+  }
+
+  function formatNumber(value) {
+    if (!isFinite(value)) return "";
+    if (Math.abs(value - Math.round(value)) < 1e-9) return String(Math.round(value));
+    return value.toFixed(1);
+  }
+
+  function getBazaarPriceAny() {
+    const priceNode = document.querySelector("article.checktxt em");
+    if (priceNode) {
+      const m = priceNode.textContent.match(/([\d,]+)\s*Any/i);
+      if (m) return parseInt(m[1].replace(/,/g, ""), 10);
+    }
+
+    const listingNode = document.querySelector("p.belt");
+    if (listingNode) {
+      const m = listingNode.textContent.match(/バザーに\s*([\d,]+)\s*Anyで出品中です/i);
+      if (m) return parseInt(m[1].replace(/,/g, ""), 10);
+    }
+
+    const allText = document.body ? document.body.textContent : "";
+    const textMatch = allText && allText.match(/出品金額は\s*([\d,]+)\s*Any/i);
+    if (textMatch) return parseInt(textMatch[1].replace(/,/g, ""), 10);
+    const listingTextMatch = allText && allText.match(/バザーに\s*([\d,]+)\s*Anyで出品中です/i);
+    if (listingTextMatch) return parseInt(listingTextMatch[1].replace(/,/g, ""), 10);
+
+    const scriptText = [...document.querySelectorAll("script")]
+      .map((s) => s.textContent || "")
+      .join("\n");
+    const scriptMatch = scriptText.match(/confirm\.set\([^)]*?"([\d,]+)\s*Anyで購入します/i);
+    if (scriptMatch) return parseInt(scriptMatch[1].replace(/,/g, ""), 10);
+
+    return null;
   }
 
   function getGrade() {
@@ -230,6 +295,8 @@
     const pad4 = (n) => " ".repeat(Math.max(0, 4 - String(n).length));
 
     const lines = [];
+    let maxAgi = null;
+    let maxHit = null;
     lines.push("-----------------------");
     lines.push(`Lv1->${maxLevel}(最大)時のステータス`);
     for (const label of TARGETS) {
@@ -239,10 +306,22 @@
       const factor = label === "HP" ? sqrtGmax : Gmax;
       const lv1status = info.base + info.bonus
       const maxTotal = Math.floor(lv1status * factor);
+      if (label === "敏捷") maxAgi = maxTotal;
+      if (label === "命中") maxHit = maxTotal;
 
       lines.push(
         `${info.name}:${pad5(lv1status)}${lv1status} ->${pad5(maxTotal)}${maxTotal}`
       );
+    }
+    if (maxHit != null) {
+      const maxHitRate = Math.sqrt(maxHit);
+      lines.push(`命中率: ${formatNumber(maxHitRate)}`);
+    }
+    if (maxAgi != null) {
+      const maxEvasionRate = Math.sqrt(maxAgi);
+      lines.push(`回避率: ${formatNumber(maxEvasionRate)}`);
+      const maxActionValue = Math.sqrt(maxAgi * 2000);
+      lines.push(`行動値: ${Math.round(maxActionValue)}`);
     }
 
     return lines;
@@ -312,17 +391,78 @@
     return lines;
   }
 
-  function renderPanel(lines, moreLines, gradeUrl) {
+  function buildCombatMemoLines() {
+    return [
+      "-----------------------",
+      "命中と回避の差4.5≒命中率10%",
+    ];
+  }
+
+  function renderPanel(lines, moreLines, gradeUrl, panelTitle) {
+    const overlayPadTop = 10;
+    const overlayPadBottom = 10;
+    const overlay = document.createElement("div");
+    overlay.style.cssText =
+      "position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.45);" +
+      `display:flex;justify-content:flex-end;align-items:flex-start;padding:${overlayPadTop}px 10px ${overlayPadBottom}px 10px;`;
+
     const box = document.createElement("div");
     box.style.cssText =
-      "position:fixed;top:10px;right:10px;z-index:99999;background:rgba(0,0,0,.8);" +
-      "color:#fff;padding:10px 15px;border-radius:8px;font-family:monospace;" +
-      "color:#fff;padding:10px 15px;border-radius:8px;font-family:monospace;" +
-      "font-size:14px;max-width:90%;";
+      "background:rgba(0,0,0,.6);color:#fff;border-radius:8px;font-family:monospace;" +
+      "font-size:14px;width:fit-content;max-width:min(92vw,420px);display:flex;flex-direction:column;" +
+      "box-shadow:0 8px 24px rgba(0,0,0,.35);position:relative;";
+    overlay.appendChild(box);
+
+    const header = document.createElement("div");
+    header.style.cssText =
+      "display:flex;justify-content:space-between;align-items:center;" +
+      "padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.2);";
+    box.appendChild(header);
+
+    const title = document.createElement("div");
+    title.textContent = panelTitle || "モンスター情報";
+    title.style.cssText = "";
+    header.appendChild(title);
+
+    const closeBtn = document.createElement("span");
+    closeBtn.setAttribute("role", "button");
+    closeBtn.setAttribute("tabindex", "0");
+    closeBtn.title = "閉じる";
+    closeBtn.style.cssText =
+      "position:absolute;top:0px;right:0px;cursor:pointer;" +
+      "color:#fff;font-size:16px;line-height:16px;padding:6px 10px;";
+    closeBtn.innerHTML =
+      '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" ' +
+      'fill="currentColor"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>';
+    box.appendChild(closeBtn);
+
+    const content = document.createElement("div");
+    content.style.cssText =
+      "padding:10px 12px;overflow-y:auto;overflow-x:hidden;" +
+      "-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;";
+    box.appendChild(content);
+
+    function applyModalSize() {
+      const viewportH =
+        (window.visualViewport && Number.isFinite(window.visualViewport.height)
+          ? window.visualViewport.height
+          : window.innerHeight) || 0;
+      const maxH = Math.max(180, Math.floor(viewportH - overlayPadTop - overlayPadBottom));
+      box.style.maxHeight = `${maxH}px`;
+    }
+    applyModalSize();
+    window.addEventListener("resize", applyModalSize);
 
     function appendLines(target, list) {
       list.forEach((line, index) => {
         if (index > 0) target.appendChild(document.createTextNode("\n"));
+        if (index === 0 && /^\S.*\((原種|亜種[1-3])\)$/.test(line)) {
+          const centered = document.createElement("span");
+          centered.textContent = line;
+          centered.style.cssText = "display:block;text-align:center;";
+          target.appendChild(centered);
+          return;
+        }
         if (gradeUrl && line === "次のグレードになるには") {
           const link = document.createElement("a");
           link.href = gradeUrl;
@@ -341,13 +481,13 @@
     }
 
     const pre = document.createElement("pre");
-    pre.style.cssText = "margin:0;white-space:pre;";
+    pre.style.cssText = "margin:0;white-space:pre-wrap;word-break:break-word;";
     appendLines(pre, lines);
-    box.appendChild(pre);
+    content.appendChild(pre);
 
     const toggleWrap = document.createElement("div");
-    toggleWrap.style.cssText = "margin-top:8px;text-align:right;";
-    box.appendChild(toggleWrap);
+    toggleWrap.style.cssText = "margin-top:8px;text-align:right;padding-bottom:4px;";
+    content.appendChild(toggleWrap);
 
     const toggle = document.createElement("a");
     toggle.href = "#";
@@ -360,18 +500,33 @@
       e.preventDefault();
       if (opened) return;
       const nextPre = document.createElement("pre");
-      nextPre.style.cssText = "margin:8px 0 0;white-space:pre;";
+      nextPre.style.cssText = "margin:8px 0 0;white-space:pre-wrap;word-break:break-word;";
       appendLines(nextPre, moreLines);
-      box.appendChild(nextPre);
+      content.appendChild(nextPre);
       toggleWrap.remove();
       opened = true;
     };
 
-    box.onclick = (e) => {
-      if (e.target === toggle) return;
-      box.remove();
+    function closePanel() {
+      window.removeEventListener("resize", applyModalSize);
+      overlay.remove();
+    }
+
+    closeBtn.onclick = (e) => {
+      e.stopPropagation();
+      closePanel();
     };
-    document.body.appendChild(box);
+    closeBtn.onkeydown = (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.stopPropagation();
+        closePanel();
+      }
+    };
+    overlay.onclick = (e) => {
+      if (e.target !== overlay) return;
+      closePanel();
+    };
+    document.body.appendChild(overlay);
   }
 
   try {
@@ -389,24 +544,63 @@
     const { lines, sumSq, statInfo } = collectStats(rows, level, G, sqrtG);
     const evalValue = calcEval(sumSq);
     const grade = getGrade();
+    const monsterName = getMonsterName();
+    const monsterKind = getMonsterKind();
+    const rarityCoeff = GROWTH_COEFF_BY_RARITY[rarity] ?? 1.0;
+    const deliveryPoint = evalValue * rarityCoeff;
+    const deliveryPointDisplay = Math.floor(deliveryPoint);
+    const bazaarPriceAny = getBazaarPriceAny();
+
+    const levelSuffix = Number.isFinite(level) ? ` Lv${level}` : "";
+    const panelTitle = monsterName
+      ? `${monsterName}${monsterKind ? `(${monsterKind})` : ""}${levelSuffix}`
+      : `モンスター情報${levelSuffix}`;
 
     lines.push("-----------------------");
+    lines.push("現在ステータス準拠");
     lines.push("評価値: " + evalValue.toFixed(1));
-
-    if (grade != null) {
-      const baseExp = expRarityFactor * grade * ((level + 4) / 5) * 16;
-      const expO = Math.floor(baseExp);
-      const expS = Math.floor(baseExp * 1.125);
-      lines.push(`経験値: 異${expO} / 同${expS}`);
+    if (bazaarPriceAny != null && deliveryPointDisplay > 0) {
+      const unitPrice = bazaarPriceAny / deliveryPoint;
+      const unitPriceRounded = Math.round(unitPrice);
+      lines.push(`納品pt: ${deliveryPointDisplay} (${unitPriceRounded}any/pt)`);
     } else {
-      lines.push("経験値: 取得失敗");
+      lines.push(`納品pt: ${deliveryPointDisplay}`);
     }
+
+    const agiInfo = statInfo["敏捷"];
+    const currentStatusTailLines = [];
+    const hitInfo = statInfo["命中"];
+    if (hitInfo) {
+      const hitRate = Math.sqrt(hitInfo.current);
+      lines.push(`命中率: ${formatNumber(hitRate)}`);
+    }
+    if (agiInfo) {
+      const evasionRate = Math.sqrt(agiInfo.current);
+      lines.push(`回避率: ${formatNumber(evasionRate)}`);
+      const agility = agiInfo.current;
+      const actionValue = Math.sqrt(agility * 2000);
+      lines.push(`行動値: ${Math.round(actionValue)}`);
+      if (grade != null) {
+        const baseExp = expRarityFactor * grade * ((level + 4) / 5) * 16;
+        const expO = Math.floor(baseExp);
+        const expS = Math.floor(baseExp * 1.125);
+        currentStatusTailLines.push(`経験値: 異${expO} / 同${expS}`);
+      } else {
+        currentStatusTailLines.push("経験値: 取得失敗");
+      }
+      const latentRateCurrent = calcLatentSkillRate(level, maxLevel, rarity, monsterKind);
+      if (latentRateCurrent != null) {
+        currentStatusTailLines.push(`潜在発現率: ${formatTrunc1(latentRateCurrent)}%`);
+      }
+    }
+    lines.push(...currentStatusTailLines);
 
     const maxLevelLines = buildMaxLevelLines(statInfo, maxLevel, rarity);
     const nextGradeLines = buildNextGradeLines(statInfo, evalValue);
-    const moreLines = [...maxLevelLines, ...nextGradeLines];
+    const combatMemoLines = buildCombatMemoLines();
+    const moreLines = [...maxLevelLines, ...nextGradeLines, ...combatMemoLines];
     const gradeUrl = buildGradeToolUrl(statInfo);
-    renderPanel(lines, moreLines, gradeUrl);
+    renderPanel(lines, moreLines, gradeUrl, panelTitle);
   } catch (e) {
     alert("エラー: " + e.message);
   }
