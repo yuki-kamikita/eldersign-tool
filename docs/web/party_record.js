@@ -458,6 +458,39 @@ import {
         renderAll();
       };
 
+      const reorderParties = (fromPartyId, toPartyId) => {
+        const fromId = clampParty(fromPartyId);
+        const toId = clampParty(toPartyId);
+        if (fromId === toId) return false;
+
+        const ordered = [];
+        for (let id = 1; id <= store.partyCount; id += 1) {
+          ordered.push({
+            id,
+            entries: getPartyEntries(id).map((entry) => normalizeEntry(entry)),
+            name: store.partyNames[String(id)] || "",
+          });
+        }
+
+        const fromIndex = fromId - 1;
+        const toIndex = toId - 1;
+        const [moved] = ordered.splice(fromIndex, 1);
+        if (!moved) return false;
+        ordered.splice(toIndex, 0, moved);
+
+        store.parties = {};
+        store.partyNames = {};
+        ordered.forEach((party, index) => {
+          const nextId = index + 1;
+          store.parties[nextId] = party.entries;
+          if (party.name) {
+            store.partyNames[String(nextId)] = party.name;
+          }
+        });
+        store.partyCount = ordered.length;
+        return true;
+      };
+
       const addSlot = (partyId) => {
         const entries = getPartyEntries(partyId);
         entries.push(defaultEntry());
@@ -721,6 +754,28 @@ import {
           if (section) {
             section.dataset.party = String(partyId);
             section.classList.remove("is-collapsed");
+            section.addEventListener("dragover", (event) => {
+              if (dragState.type !== "party") return;
+              event.preventDefault();
+              section.classList.add("drag-target");
+            });
+            section.addEventListener("dragleave", () => {
+              section.classList.remove("drag-target");
+            });
+            section.addEventListener("drop", (event) => {
+              if (dragState.type !== "party") return;
+              event.preventDefault();
+              section.classList.remove("drag-target");
+              if (!dragState.partyId) return;
+              if (!reorderParties(dragState.partyId, partyId)) {
+                onDragEnd();
+                return;
+              }
+              saveStore(store);
+              renderAll();
+              setStatus(`PT${dragState.partyId}をPT${partyId}の位置へ移動しました`);
+              onDragEnd();
+            });
           }
           if (header) {
             header.setAttribute("aria-expanded", "true");
@@ -730,6 +785,28 @@ import {
               section.classList.toggle("is-collapsed", nextCollapsed);
               header.setAttribute("aria-expanded", nextCollapsed ? "false" : "true");
             };
+            header.setAttribute("draggable", "true");
+            header.addEventListener("dragstart", (event) => {
+              if (event.target.closest("input, button")) {
+                event.preventDefault();
+                return;
+              }
+              dragState.type = "party";
+              dragState.partyId = partyId;
+              dragState.slotIndex = null;
+              dragState.skillIndex = null;
+              if (section) {
+                section.classList.add("is-dragging");
+              }
+              event.dataTransfer.effectAllowed = "move";
+              event.dataTransfer.setData("text/plain", "party");
+            });
+            header.addEventListener("dragend", () => {
+              if (section) {
+                section.classList.remove("is-dragging");
+              }
+              onDragEnd();
+            });
             header.addEventListener("click", (event) => {
               if (event.target.closest("input")) return;
               toggleSection();
