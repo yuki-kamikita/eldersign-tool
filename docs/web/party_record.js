@@ -13,7 +13,7 @@ import {
 
     (async () => {
       const DEFAULT_SLOT_COUNT = 4;
-      const SKILL_COUNT = 5;
+      const SKILL_COUNT = 6;
       const DEFAULT_PARTY_COUNT = 4;
       const FIRESTORE_COLLECTION = "partyRecords";
       const SAVE_DELAY_MS = 600;
@@ -317,6 +317,11 @@ import {
           skills = skillList;
         }
 
+        const skillZero = normalizeText(params.get("skill0"));
+        if (skillZero) {
+          skills.push(skillZero);
+        }
+
         for (let i = 1; i <= SKILL_COUNT; i += 1) {
           const skillValue = normalizeText(params.get(`skill${i}`));
           if (skillValue) skills.push(skillValue);
@@ -591,7 +596,6 @@ import {
         const previewImage = clone.querySelector(".slot-image");
         const skillRows = [...clone.querySelectorAll(".skill-row")];
         const skillInputs = [...clone.querySelectorAll(".slot-skill")];
-        const skillDrags = [...clone.querySelectorAll(".skill-drag")];
 
         nameInput.dataset.party = String(partyId);
         nameInput.dataset.slot = String(index);
@@ -687,7 +691,10 @@ import {
           row.dataset.party = String(partyId);
           row.dataset.slot = String(index);
           row.dataset.skillIndex = String(skillIndex);
-          const handle = skillDrags[skillIndex];
+          const handle = row.querySelector(".skill-drag");
+          if (!handle) {
+            return;
+          }
           handle.dataset.party = String(partyId);
           handle.dataset.slot = String(index);
           handle.dataset.skillIndex = String(skillIndex);

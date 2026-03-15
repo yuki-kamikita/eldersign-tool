@@ -478,6 +478,16 @@
       display: block;
     }
 
+    .skill-drag-spacer {
+      position: absolute;
+      right: 4px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 12px;
+      pointer-events: none;
+    }
+
     .drag-target {
       outline: 2px dashed color-mix(in srgb, var(--md-sys-primary) 55%, transparent);
       outline-offset: 2px;
@@ -580,6 +590,10 @@
       <div class="skills">
         <div class="skill-grid">
           <div class="skill-row">
+            <span class="skill-drag-spacer" aria-hidden="true"></span>
+            <input class="slot-skill slot-skill-fixed" type="text" placeholder="スキル0" />
+          </div>
+          <div class="skill-row">
             <button class="drag-handle skill-drag" type="button" draggable="true" aria-label="スキルを移動"></button>
             <input class="slot-skill" type="text" placeholder="スキル1" />
           </div>
@@ -625,7 +639,7 @@
   </template>
 
   <script src="./party_record_legacy_storage.js?v2" defer></script>
-  <script type="module" src="./party_record.js?v4"></script>
+  <script type="module" src="./party_record.js?v5"></script>
   <script src="../footer.js" defer></script>
 </body>
 
