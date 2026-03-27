@@ -652,8 +652,8 @@
       ? `${monsterName}${monsterKind ? `(${monsterKind})` : ""}${levelSuffix}`
       : `モンスター情報${levelSuffix}`;
 
-    lines.push("-----------------------");
-    lines.push("現在ステータス準拠");
+    const agiInfo = statInfo["敏捷"];
+    const currentStatusTailLines = [];
     lines.push("評価値: " + evalValue.toFixed(1));
     if (bazaarPriceAny != null && deliveryPointDisplay > 0) {
       const unitPrice = bazaarPriceAny / deliveryPoint;
@@ -662,9 +662,8 @@
     } else {
       lines.push(`納品pt: ${deliveryPointDisplay}`);
     }
-
-    const agiInfo = statInfo["敏捷"];
-    const currentStatusTailLines = [];
+    lines.push("-----------------------");
+    lines.push("現在ステータス準拠");
     const hitInfo = statInfo["命中"];
     if (hitInfo) {
       const hitRate = Math.sqrt(hitInfo.current);
