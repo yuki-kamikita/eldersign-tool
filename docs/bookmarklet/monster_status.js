@@ -255,6 +255,69 @@
     }
   }
 
+  function getMonsterId() {
+    const params = new URLSearchParams(window.location.search);
+    const mid = params.get("mid");
+    if (mid) return mid;
+
+    const renameLink = document.querySelector('a[href*="/mcard_name?mid="]');
+    if (!renameLink) return null;
+
+    try {
+      const url = new URL(renameLink.href, window.location.href);
+      return url.searchParams.get("mid");
+    } catch (_) {
+      return null;
+    }
+  }
+
+  async function renameMonsterToBasePoint(monsterId, deliveryPoint) {
+    if (!monsterId) throw new Error("モンスターIDが取得できません");
+
+    const nextName = `納品基礎pt${deliveryPoint}`;
+    const renameUrl = new URL("/mcard_name", window.location.origin);
+    renameUrl.searchParams.set("mid", monsterId);
+    renameUrl.searchParams.set("pg", "0");
+
+    const renamePageResponse = await fetch(renameUrl.toString(), {
+      credentials: "include",
+    });
+    if (!renamePageResponse.ok) {
+      throw new Error("命名変更画面の取得に失敗しました");
+    }
+
+    const renamePageHtml = await renamePageResponse.text();
+    const doc = new DOMParser().parseFromString(renamePageHtml, "text/html");
+    const form = doc.querySelector('form[action*="mcard_detail"]');
+    if (!form) {
+      throw new Error("命名変更フォームが見つかりません");
+    }
+
+    const action = form.getAttribute("action");
+    if (!action) {
+      throw new Error("命名変更先URLが見つかりません");
+    }
+
+    const submitUrl = new URL(action, window.location.origin);
+    const body = new URLSearchParams();
+    body.set("name", nextName);
+
+    const submitResponse = await fetch(submitUrl.toString(), {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: body.toString(),
+    });
+
+    if (!submitResponse.ok) {
+      throw new Error("命名変更の送信に失敗しました");
+    }
+
+    return nextName;
+  }
+
   function buildGradeToolUrl(statInfo) {
     if (!statInfo) return null;
     const params = new URLSearchParams();
@@ -398,7 +461,8 @@
     ];
   }
 
-  function renderPanel(lines, moreLines, gradeUrl, panelTitle) {
+  function renderPanel(lines, moreLines, gradeUrl, panelTitle, options = {}) {
+    const { onRenameClick } = options;
     const overlayPadTop = 10;
     const overlayPadBottom = 10;
     const overlay = document.createElement("div");
@@ -476,6 +540,37 @@
           target.appendChild(link);
           return;
         }
+        if (onRenameClick && /^納品pt:\s*\d+/.test(line)) {
+          const wrap = document.createElement("span");
+          wrap.textContent = line;
+
+          const renameBtn = document.createElement("a");
+          renameBtn.href = "#";
+          renameBtn.textContent = "命名";
+          renameBtn.style.cssText =
+            "margin-left:8px;color:inherit;" +
+            "font-size:12px;cursor:pointer;text-decoration:underline;";
+          renameBtn.onclick = async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (renameBtn.disabled) return;
+            renameBtn.disabled = true;
+            const originalText = renameBtn.textContent;
+            renameBtn.textContent = "変更中";
+            try {
+              await onRenameClick();
+              renameBtn.textContent = "変更済み";
+            } catch (error) {
+              renameBtn.disabled = false;
+              renameBtn.textContent = originalText;
+              alert("命名変更に失敗しました: " + error.message);
+            }
+          };
+
+          wrap.appendChild(renameBtn);
+          target.appendChild(wrap);
+          return;
+        }
         target.appendChild(document.createTextNode(line));
       });
     }
@@ -537,6 +632,7 @@
     const rarity = getRarity(maxLevel);
     const { G, sqrtG } = getGrowth(level, maxLevel, rarity);
     const expRarityFactor = EXP_COEFF_BY_RARITY[rarity] ?? 1;
+    const monsterId = getMonsterId();
 
     const rows = getStatusRows();
     if (!rows) return;
@@ -600,7 +696,22 @@
     const combatMemoLines = buildCombatMemoLines();
     const moreLines = [...maxLevelLines, ...nextGradeLines, ...combatMemoLines];
     const gradeUrl = buildGradeToolUrl(statInfo);
-    renderPanel(lines, moreLines, gradeUrl, panelTitle);
+    renderPanel(lines, moreLines, gradeUrl, panelTitle, {
+      onRenameClick: async () => {
+        const nextName = await renameMonsterToBasePoint(monsterId, deliveryPointDisplay);
+        const heading =
+          document.querySelector("div.card_d header.card h1") ||
+          document.querySelector("h1");
+        if (heading) {
+          const textNode = [...heading.childNodes].find((node) => node.nodeType === Node.TEXT_NODE);
+          if (textNode) {
+            textNode.textContent = nextName + " ";
+          } else {
+            heading.prepend(document.createTextNode(nextName + " "));
+          }
+        }
+      },
+    });
   } catch (e) {
     alert("エラー: " + e.message);
   }
