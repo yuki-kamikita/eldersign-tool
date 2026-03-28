@@ -722,7 +722,7 @@
     renderPanel(lines, moreLines, gradeUrl, panelTitle, {
       renameActions: {
         delivery: async () => {
-          const nextName = await renameMonster(monsterId, `納品基礎pt${deliveryPointDisplay}`);
+          const nextName = await renameMonster(monsterId, `納品基本pt${deliveryPointDisplay}`);
           const heading =
             document.querySelector("div.card_d header.card h1") ||
             document.querySelector("h1");
