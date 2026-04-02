@@ -73,7 +73,6 @@
 
     const panel = buildPanel();
     const errors = [];
-    const fragment = document.createDocumentFragment();
 
     const pagesToFetch = totalPages - currentPage;
 
@@ -88,14 +87,14 @@
         if (!items.length) {
           throw new Error("一覧が取得できませんでした");
         }
+        const fragment = document.createDocumentFragment();
         items.forEach((item) => fragment.appendChild(document.importNode(item, true)));
+        list.appendChild(fragment);
       } catch (err) {
         errors.push(`${page}ページ目: ${err.message}`);
       }
       await sleep(REQUEST_DELAY_MS);
     }
-
-    list.appendChild(fragment);
     document.body.dataset.esBookExpanded = "1";
 
     if (errors.length) {
