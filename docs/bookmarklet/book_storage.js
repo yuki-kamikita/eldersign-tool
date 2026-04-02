@@ -28,15 +28,18 @@
   border-radius:8px;
   font-family:monospace;
   font-size:12px;
-  max-width:calc(100% - 12px);
-  width:min(420px, calc(100% - 12px));
+  width:calc(100% - 12px);
+  max-width:420px;
   display:flex;
-  flex-wrap:wrap;
-  gap:6px;
-  align-items:center;
-  position:fixed;
+  flex-direction:column;
+  align-items:stretch;
   box-sizing:border-box;
-  padding-top:28px;
+}
+@media (max-width: 767px){
+  #${ACTION_PANEL_ID}{
+    top:72px;
+    bottom:auto;
+  }
 }
 #${ACTION_PANEL_ID} button,
 #${ACTION_PANEL_ID} input{
@@ -61,9 +64,11 @@
   align-items:center;
   align-content:flex-start;
   overflow-y:auto;
-  max-height:min(50vh, 320px);
-  padding-top:0;
+  max-height:320px;
+  padding-top:8px;
   padding-right:2px;
+  width:100%;
+  box-sizing:border-box;
 }
 #${ACTION_PANEL_ID} .es-book-status{
   display:inline-flex;

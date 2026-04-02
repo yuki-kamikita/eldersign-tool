@@ -76,12 +76,18 @@
   border-radius:8px;
   font-family:monospace;
   font-size:12px;
-  max-width:calc(100% - 12px);
-  width:min(420px, calc(100% - 12px));
+  width:calc(100% - 12px);
+  max-width:420px;
   display:flex;
   flex-direction:column;
   align-items:stretch;
   position:fixed;
+}
+@media (max-width: 767px){
+  #${MENU_ID}{
+    top:72px;
+    bottom:auto;
+  }
 }
 #${MENU_ID} button,
 #${MENU_ID} input{
@@ -103,7 +109,7 @@
   flex-wrap:wrap;
   align-content:flex-start;
   overflow-y:auto;
-  max-height:min(50vh, 320px);
+  max-height:320px;
   padding-top:8px;
   padding-right:2px;
 }
