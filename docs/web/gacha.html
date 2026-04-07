@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+  <title>ガチャ確率計算機</title>
+  <link rel="stylesheet" href="../theme.css?v8" />
+  <style>
+    .tool-grid {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .result-summary {
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .result-summary:focus-visible {
+      outline: 2px solid var(--md-sys-primary);
+      outline-offset: 2px;
+    }
+
+    .result-detail-panel {
+      margin-top: 8px;
+      gap: 8px;
+    }
+
+    .result-detail-panel:not(.is-hidden) {
+      display: grid;
+    }
+
+    .result-detail-title {
+      margin: 0 0 8px;
+      color: var(--md-sys-on-surface-variant);
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .result-detail-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .result-detail-entry {
+      display: grid;
+      gap: 3px;
+    }
+
+    .result-detail-meta {
+      color: var(--md-sys-on-surface-variant);
+      font-size: 0.85rem;
+      line-height: 1.45;
+    }
+
+    .result-detail-value {
+      font-size: 0.95rem;
+      font-weight: 700;
+      text-align: right;
+      overflow-wrap: anywhere;
+      word-break: normal;
+      line-height: 1.35;
+    }
+
+    .text-button {
+      appearance: none;
+      border: none;
+      padding: 0;
+      background: transparent;
+      color: var(--md-sys-primary);
+      font: inherit;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .text-button:hover {
+      text-decoration: underline;
+    }
+
+    .text-button:focus-visible {
+      outline: 2px solid var(--md-sys-primary);
+      outline-offset: 4px;
+    }
+
+    .chart-card {
+      min-height: auto;
+    }
+
+    .chart-wrap {
+      width: 100%;
+      min-height: 250px;
+    }
+
+    .chart-canvas {
+      width: 100%;
+      height: 250px;
+      display: block;
+      border-radius: 12px;
+      border: 1px solid var(--md-sys-outline-variant);
+      background: var(--md-sys-surface);
+    }
+
+    .formula-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--md-sys-outline-variant);
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--md-sys-surface);
+    }
+
+    .formula-table th,
+    .formula-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--md-sys-outline-variant);
+      text-align: left;
+      vertical-align: top;
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    .formula-table tr:last-child th,
+    .formula-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .formula-table th {
+      width: 180px;
+      color: var(--md-sys-on-surface-variant);
+      font-weight: 600;
+      background: color-mix(in srgb, var(--md-sys-surface) 90%, var(--md-sys-primary-container));
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <header class="reveal">
+      <p class="subtitle">Eldersign Toolkit</p>
+      <h1>ガチャ確率計算機</h1>
+      <p class="subtitle">選択肢の中に狙いが含まれる回数を二項分布で計算</p>
+      <div class="nav-links">
+        <a class="button secondary" href="../index.html">ツール集へ戻る</a>
+      </div>
+    </header>
+
+    <div class="reveal calc-output-panel">
+      <div class="calc-output-grid">
+        <article class="calc-output-item">
+          <div class="result-card">
+            <div id="gacha-result-summary" class="result-summary" role="button" tabindex="0" aria-expanded="false"
+              aria-controls="gacha-result-detail">
+              <div id="gacha-result-list" class="result-pair-list"></div>
+            </div>
+            <div id="gacha-result-detail" class="divider result-divider result-detail-panel is-hidden">
+              <div class="result-detail-section">
+                <p class="result-detail-title">詳細</p>
+                <div id="gacha-detail-list" class="result-detail-list"></div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <section class="reveal">
+      <div class="section-title">
+        <h2>入力</h2>
+      </div>
+      <div class="tool-grid">
+        <article class="card no-hover">
+          <h3>ガチャ結果</h3>
+          <div class="form-grid">
+            <div class="input-row">
+              <label for="draw-count">引いた回数</label>
+              <input id="draw-count" type="number" min="0" max="10000" step="1" value="100" />
+            </div>
+            <div class="input-row">
+              <label for="choice-count">選択肢の数</label>
+              <input id="choice-count" type="number" min="1" max="1000" step="1" value="3" />
+            </div>
+            <div class="input-row">
+              <label for="target-rate">狙いの排出率(%)</label>
+              <input id="target-rate" type="number" min="0" max="100" step="0.001" value="1" />
+            </div>
+            <div class="input-row">
+              <label for="hit-count">当たりの数</label>
+              <input id="hit-count" type="number" min="0" max="10000" step="1" value="0" />
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="reveal">
+      <div class="section-title">
+        <h2>分布グラフ</h2>
+        <button id="share-twitter" class="text-button" type="button">Twitterでシェア</button>
+      </div>
+      <article class="card no-hover chart-card">
+        <div class="chart-wrap">
+          <canvas id="gacha-chart" class="chart-canvas" width="960" height="300"></canvas>
+        </div>
+        <p class="hint" id="gacha-chart-note">-</p>
+      </article>
+    </section>
+
+    <section class="reveal">
+      <div class="section-title">
+        <h2>計算式</h2>
+      </div>
+      <article class="card no-hover">
+        <table class="formula-table">
+          <tbody>
+            <tr>
+              <th>1回あたりの当たり率</th>
+              <td>1 - (1 - 狙いの排出率) ^ 選択肢の数</td>
+            </tr>
+            <tr>
+              <th>当たり回数</th>
+              <td>引いた回数を n、1回あたりの当たり率を p とする二項分布 B(n, p)</td>
+            </tr>
+            <tr>
+              <th>期待値/標準偏差</th>
+              <td>期待値 = n × p / 標準偏差 = √(n × p × (1 - p))</td>
+            </tr>
+          </tbody>
+        </table>
+      </article>
+    </section>
+  </main>
+
+  <script src="./tool-common.js?v2" defer></script>
+  <script src="./gacha.js?v9" defer></script>
+  <script src="../footer.js" defer></script>
+</body>
+
+</html>
