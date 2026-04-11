@@ -9,8 +9,9 @@
     document.getElementById(PANEL_ID)?.remove();
     const panel = document.createElement("div");
     panel.id = PANEL_ID;
+    const isMobile = window.matchMedia("(max-width: 767px)").matches;
     panel.style.cssText =
-      "position:fixed;top:10px;right:10px;z-index:99999;" +
+      `position:fixed;top:${isMobile ? 72 : 10}px;right:10px;z-index:99999;` +
       "background:rgba(0,0,0,.8);color:#fff;padding:10px 12px;" +
       "border-radius:8px;font-family:monospace;font-size:12px;" +
       "max-width:calc(100% - 20px);";
