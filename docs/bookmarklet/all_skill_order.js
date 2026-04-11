@@ -520,37 +520,24 @@
   };
 
   const getExportConfig = () => {
-    const params = new URLSearchParams(location.search);
     const detectedPhase = extractPhaseFromDocument();
-    const defaultPhase =
-      detectedPhase ||
-      params.get("se") ||
-      localStorage.getItem("es_rankmatch_export_phase") ||
-      "";
-    let phase = String(defaultPhase).trim().replace(/[^\d]/g, "");
+    let phase = String(detectedPhase || "").trim().replace(/[^\d]/g, "");
     if (!phase) {
-      const phaseInput = prompt("保存する期を入力してください", defaultPhase);
+      const phaseInput = prompt("保存する期を入力してください", "");
       if (phaseInput == null) return null;
       phase = String(phaseInput).trim().replace(/[^\d]/g, "");
     }
     if (!phase) throw new Error("期が未入力です。");
 
     const detectedGroup = extractGroupFromDocument();
-    const defaultGroup =
-      detectedGroup ||
-      normalizeGroup(params.get("group")) ||
-      normalizeGroup(localStorage.getItem("es_rankmatch_export_group")) ||
-      "A1";
-    let group = normalizeGroup(defaultGroup);
+    let group = normalizeGroup(detectedGroup);
     if (!group) {
-      const groupInput = prompt("保存するグループを入力してください (S / A1 / A2)", defaultGroup);
+      const groupInput = prompt("保存するグループを入力してください (S / A1 / A2)", "");
       if (groupInput == null) return null;
       group = normalizeGroup(groupInput);
     }
     if (!group) throw new Error("グループは S / A1 / A2 のいずれかで入力してください。");
 
-    localStorage.setItem("es_rankmatch_export_phase", phase);
-    localStorage.setItem("es_rankmatch_export_group", group);
     return { phase, group, basePath: `data/${phase}/${group}` };
   };
 

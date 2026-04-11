@@ -43,29 +43,31 @@ let PHASES = [];
           const response = await fetch("./phase_map.json", { cache: "no-store" });
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const data = await response.json();
-          const phases = Array.isArray(data) ? data : data.phases;
-          return Array.isArray(phases) ? phases : [];
+          const numbers = Array.isArray(data) ? data : data.phases;
+          return Array.isArray(numbers)
+            ? numbers.map((number) => Number(number)).filter(Number.isFinite)
+            : [];
         } catch (err) {
           console.warn("phase_map.jsonの読み込みに失敗しました。", err);
           return [];
         }
       };
 
-      const extractPhaseNumber = (phase, fallback) => {
-        const sources = [phase?.label, phase?.id, phase?.name];
-        for (const source of sources) {
-          if (!source) continue;
-          const match = String(source).match(/(\d+)/);
-          if (match) return parseInt(match[1], 10);
-        }
-        return fallback;
-      };
+      const buildGroupConfig = (phaseNumber, group) => ({
+        csv: `./data/${phaseNumber}/${group}/skill_list.csv`,
+        manifest: `./data/${phaseNumber}/${group}/manifest.json`,
+      });
 
       const buildPhaseMeta = (phases) => {
-        return phases.map((phase, index) => ({
-          phase,
+        return phases.map((number, index) => ({
+          phase: {
+            number,
+            groups: Object.fromEntries(
+              GROUP_ORDER.map((group) => [group, buildGroupConfig(number, group)])
+            ),
+          },
           index,
-          number: extractPhaseNumber(phase, index + 1),
+          number,
         }));
       };
 
@@ -634,7 +636,7 @@ let PHASES = [];
           const button = document.createElement("button");
           button.type = "button";
           button.className = "phase-button";
-          button.textContent = meta.phase.label;
+          button.textContent = `${meta.number}期`;
           button.dataset.index = String(meta.index);
           button.addEventListener("click", () => {
             setActivePhase(meta);
