@@ -2,467 +2,599 @@
   "phase": 18,
   "group": "A2",
   "matches": {
-    "A-L": {
-      "round": 11,
-      "leftLetter": "A",
-      "rightLetter": "L",
-      "leftName": "覚者ロイ",
-      "rightName": "ルゲ"
-    },
-    "B-L": {
-      "round": 6,
-      "leftLetter": "B",
-      "rightLetter": "L",
-      "leftName": "ねむ",
-      "rightName": "ルゲ"
-    },
-    "C-L": {
-      "round": 1,
-      "leftLetter": "C",
-      "rightLetter": "L",
-      "leftName": "シュトラッサー",
-      "rightName": "ルゲ"
-    },
-    "D-L": {
-      "round": 7,
-      "leftLetter": "D",
-      "rightLetter": "L",
-      "leftName": "シルファ",
-      "rightName": "ルゲ"
-    },
-    "E-L": {
-      "round": 2,
-      "leftLetter": "E",
-      "rightLetter": "L",
-      "leftName": "koganei",
-      "rightName": "ルゲ"
-    },
-    "F-L": {
-      "round": 8,
-      "leftLetter": "F",
-      "rightLetter": "L",
-      "leftName": "藤香紗",
-      "rightName": "ルゲ"
-    },
-    "G-L": {
-      "round": 3,
-      "leftLetter": "G",
-      "rightLetter": "L",
-      "leftName": "やなぎかぜ",
-      "rightName": "ルゲ"
-    },
-    "H-L": {
-      "round": 9,
-      "leftLetter": "H",
-      "rightLetter": "L",
-      "leftName": "赤い酒",
-      "rightName": "ルゲ"
-    },
-    "I-L": {
-      "round": 4,
-      "leftLetter": "I",
-      "rightLetter": "L",
-      "leftName": "りふと",
-      "rightName": "ルゲ"
-    },
-    "J-L": {
-      "round": 10,
-      "leftLetter": "J",
-      "rightLetter": "L",
-      "leftName": "まる",
-      "rightName": "ルゲ"
-    },
-    "K-L": {
-      "round": 5,
-      "leftLetter": "K",
-      "rightLetter": "L",
-      "leftName": "pipe",
-      "rightName": "ルゲ"
-    },
     "A-B": {
       "round": 1,
       "leftLetter": "A",
       "rightLetter": "B",
       "leftName": "覚者ロイ",
-      "rightName": "ねむ"
+      "rightName": "ねむ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=1&se=18&t=1",
+      "html": "./matches/A-B.html"
     },
     "A-C": {
       "round": 2,
       "leftLetter": "A",
       "rightLetter": "C",
       "leftName": "覚者ロイ",
-      "rightName": "シュトラッサー"
+      "rightName": "シュトラッサー",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=2&se=18&t=1",
+      "html": "./matches/A-C.html"
     },
     "A-D": {
       "round": 3,
       "leftLetter": "A",
       "rightLetter": "D",
       "leftName": "覚者ロイ",
-      "rightName": "シルファ"
+      "rightName": "シルファ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=3&se=18&t=1",
+      "html": "./matches/A-D.html"
     },
     "A-E": {
       "round": 4,
       "leftLetter": "A",
       "rightLetter": "E",
       "leftName": "覚者ロイ",
-      "rightName": "koganei"
+      "rightName": "koganei",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=4&se=18&t=1",
+      "html": "./matches/A-E.html"
     },
     "A-F": {
       "round": 5,
       "leftLetter": "A",
       "rightLetter": "F",
       "leftName": "覚者ロイ",
-      "rightName": "藤香紗"
+      "rightName": "藤香紗",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=5&se=18&t=1",
+      "html": "./matches/A-F.html"
     },
     "A-G": {
       "round": 6,
       "leftLetter": "A",
       "rightLetter": "G",
       "leftName": "覚者ロイ",
-      "rightName": "やなぎかぜ"
+      "rightName": "やなぎかぜ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=6&se=18&t=1",
+      "html": "./matches/A-G.html"
     },
     "A-H": {
       "round": 7,
       "leftLetter": "A",
       "rightLetter": "H",
       "leftName": "覚者ロイ",
-      "rightName": "赤い酒"
+      "rightName": "赤い酒",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=7&se=18&t=1",
+      "html": "./matches/A-H.html"
     },
     "A-I": {
       "round": 8,
       "leftLetter": "A",
       "rightLetter": "I",
       "leftName": "覚者ロイ",
-      "rightName": "りふと"
+      "rightName": "りふと",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=8&se=18&t=1",
+      "html": "./matches/A-I.html"
     },
     "A-J": {
       "round": 9,
       "leftLetter": "A",
       "rightLetter": "J",
       "leftName": "覚者ロイ",
-      "rightName": "まる"
+      "rightName": "まる",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=9&se=18&t=1",
+      "html": "./matches/A-J.html"
     },
     "A-K": {
       "round": 10,
       "leftLetter": "A",
       "rightLetter": "K",
       "leftName": "覚者ロイ",
-      "rightName": "pipe"
+      "rightName": "pipe",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=10&se=18&t=1",
+      "html": "./matches/A-K.html"
     },
-    "B-J": {
-      "round": 5,
-      "leftLetter": "B",
-      "rightLetter": "J",
-      "leftName": "ねむ",
-      "rightName": "まる"
-    },
-    "C-J": {
+    "A-L": {
       "round": 11,
-      "leftLetter": "C",
-      "rightLetter": "J",
-      "leftName": "シュトラッサー",
-      "rightName": "まる"
-    },
-    "D-J": {
-      "round": 6,
-      "leftLetter": "D",
-      "rightLetter": "J",
-      "leftName": "シルファ",
-      "rightName": "まる"
-    },
-    "E-J": {
-      "round": 1,
-      "leftLetter": "E",
-      "rightLetter": "J",
-      "leftName": "koganei",
-      "rightName": "まる"
-    },
-    "F-J": {
-      "round": 7,
-      "leftLetter": "F",
-      "rightLetter": "J",
-      "leftName": "藤香紗",
-      "rightName": "まる"
-    },
-    "G-J": {
-      "round": 2,
-      "leftLetter": "G",
-      "rightLetter": "J",
-      "leftName": "やなぎかぜ",
-      "rightName": "まる"
-    },
-    "H-J": {
-      "round": 8,
-      "leftLetter": "H",
-      "rightLetter": "J",
-      "leftName": "赤い酒",
-      "rightName": "まる"
-    },
-    "I-J": {
-      "round": 3,
-      "leftLetter": "I",
-      "rightLetter": "J",
-      "leftName": "りふと",
-      "rightName": "まる"
-    },
-    "J-K": {
-      "round": 4,
-      "leftLetter": "J",
-      "rightLetter": "K",
-      "leftName": "まる",
-      "rightName": "pipe"
+      "leftLetter": "A",
+      "rightLetter": "L",
+      "leftName": "覚者ロイ",
+      "rightName": "ルゲ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=11&se=18&t=1",
+      "html": "./matches/A-L.html"
     },
     "B-C": {
       "round": 7,
       "leftLetter": "B",
       "rightLetter": "C",
       "leftName": "ねむ",
-      "rightName": "シュトラッサー"
-    },
-    "C-D": {
-      "round": 8,
-      "leftLetter": "C",
-      "rightLetter": "D",
-      "leftName": "シュトラッサー",
-      "rightName": "シルファ"
-    },
-    "C-E": {
-      "round": 3,
-      "leftLetter": "C",
-      "rightLetter": "E",
-      "leftName": "シュトラッサー",
-      "rightName": "koganei"
-    },
-    "C-F": {
-      "round": 9,
-      "leftLetter": "C",
-      "rightLetter": "F",
-      "leftName": "シュトラッサー",
-      "rightName": "藤香紗"
-    },
-    "C-G": {
-      "round": 4,
-      "leftLetter": "C",
-      "rightLetter": "G",
-      "leftName": "シュトラッサー",
-      "rightName": "やなぎかぜ"
-    },
-    "C-H": {
-      "round": 10,
-      "leftLetter": "C",
-      "rightLetter": "H",
-      "leftName": "シュトラッサー",
-      "rightName": "赤い酒"
-    },
-    "C-I": {
-      "round": 5,
-      "leftLetter": "C",
-      "rightLetter": "I",
-      "leftName": "シュトラッサー",
-      "rightName": "りふと"
-    },
-    "C-K": {
-      "round": 6,
-      "leftLetter": "C",
-      "rightLetter": "K",
-      "leftName": "シュトラッサー",
-      "rightName": "pipe"
+      "rightName": "シュトラッサー",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=34&se=18&t=1",
+      "html": "./matches/B-C.html"
     },
     "B-D": {
       "round": 2,
       "leftLetter": "B",
       "rightLetter": "D",
       "leftName": "ねむ",
-      "rightName": "シルファ"
-    },
-    "B-F": {
-      "round": 3,
-      "leftLetter": "B",
-      "rightLetter": "F",
-      "leftName": "ねむ",
-      "rightName": "藤香紗"
-    },
-    "B-H": {
-      "round": 4,
-      "leftLetter": "B",
-      "rightLetter": "H",
-      "leftName": "ねむ",
-      "rightName": "赤い酒"
-    },
-    "B-K": {
-      "round": 11,
-      "leftLetter": "B",
-      "rightLetter": "K",
-      "leftName": "ねむ",
-      "rightName": "pipe"
+      "rightName": "シルファ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=35&se=18&t=1",
+      "html": "./matches/B-D.html"
     },
     "B-E": {
       "round": 8,
       "leftLetter": "B",
       "rightLetter": "E",
       "leftName": "ねむ",
-      "rightName": "koganei"
+      "rightName": "koganei",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=36&se=18&t=1",
+      "html": "./matches/B-E.html"
+    },
+    "B-F": {
+      "round": 3,
+      "leftLetter": "B",
+      "rightLetter": "F",
+      "leftName": "ねむ",
+      "rightName": "藤香紗",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=37&se=18&t=1",
+      "html": "./matches/B-F.html"
     },
     "B-G": {
       "round": 9,
       "leftLetter": "B",
       "rightLetter": "G",
       "leftName": "ねむ",
-      "rightName": "やなぎかぜ"
+      "rightName": "やなぎかぜ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=38&se=18&t=1",
+      "html": "./matches/B-G.html"
+    },
+    "B-H": {
+      "round": 4,
+      "leftLetter": "B",
+      "rightLetter": "H",
+      "leftName": "ねむ",
+      "rightName": "赤い酒",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=39&se=18&t=1",
+      "html": "./matches/B-H.html"
     },
     "B-I": {
       "round": 10,
       "leftLetter": "B",
       "rightLetter": "I",
       "leftName": "ねむ",
-      "rightName": "りふと"
+      "rightName": "りふと",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=40&se=18&t=1",
+      "html": "./matches/B-I.html"
     },
-    "D-I": {
-      "round": 11,
-      "leftLetter": "D",
-      "rightLetter": "I",
-      "leftName": "シルファ",
-      "rightName": "りふと"
-    },
-    "E-I": {
-      "round": 6,
-      "leftLetter": "E",
-      "rightLetter": "I",
-      "leftName": "koganei",
-      "rightName": "りふと"
-    },
-    "F-I": {
-      "round": 1,
-      "leftLetter": "F",
-      "rightLetter": "I",
-      "leftName": "藤香紗",
-      "rightName": "りふと"
-    },
-    "G-I": {
-      "round": 7,
-      "leftLetter": "G",
-      "rightLetter": "I",
-      "leftName": "やなぎかぜ",
-      "rightName": "りふと"
-    },
-    "H-I": {
-      "round": 2,
-      "leftLetter": "H",
-      "rightLetter": "I",
-      "leftName": "赤い酒",
-      "rightName": "りふと"
-    },
-    "I-K": {
-      "round": 9,
-      "leftLetter": "I",
-      "rightLetter": "K",
-      "leftName": "りふと",
-      "rightName": "pipe"
-    },
-    "D-G": {
-      "round": 10,
-      "leftLetter": "D",
-      "rightLetter": "G",
-      "leftName": "シルファ",
-      "rightName": "やなぎかぜ"
-    },
-    "E-G": {
+    "B-J": {
       "round": 5,
-      "leftLetter": "E",
-      "rightLetter": "G",
-      "leftName": "koganei",
-      "rightName": "やなぎかぜ"
+      "leftLetter": "B",
+      "rightLetter": "J",
+      "leftName": "ねむ",
+      "rightName": "まる",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=41&se=18&t=1",
+      "html": "./matches/B-J.html"
     },
-    "F-G": {
+    "B-K": {
       "round": 11,
-      "leftLetter": "F",
-      "rightLetter": "G",
-      "leftName": "藤香紗",
-      "rightName": "やなぎかぜ"
-    },
-    "G-H": {
-      "round": 1,
-      "leftLetter": "G",
-      "rightLetter": "H",
-      "leftName": "やなぎかぜ",
-      "rightName": "赤い酒"
-    },
-    "G-K": {
-      "round": 8,
-      "leftLetter": "G",
+      "leftLetter": "B",
       "rightLetter": "K",
-      "leftName": "やなぎかぜ",
-      "rightName": "pipe"
+      "leftName": "ねむ",
+      "rightName": "pipe",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=42&se=18&t=1",
+      "html": "./matches/B-K.html"
+    },
+    "B-L": {
+      "round": 6,
+      "leftLetter": "B",
+      "rightLetter": "L",
+      "leftName": "ねむ",
+      "rightName": "ルゲ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=43&se=18&t=1",
+      "html": "./matches/B-L.html"
+    },
+    "C-D": {
+      "round": 8,
+      "leftLetter": "C",
+      "rightLetter": "D",
+      "leftName": "シュトラッサー",
+      "rightName": "シルファ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=67&se=18&t=1",
+      "html": "./matches/C-D.html"
+    },
+    "C-E": {
+      "round": 3,
+      "leftLetter": "C",
+      "rightLetter": "E",
+      "leftName": "シュトラッサー",
+      "rightName": "koganei",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=68&se=18&t=1",
+      "html": "./matches/C-E.html"
+    },
+    "C-F": {
+      "round": 9,
+      "leftLetter": "C",
+      "rightLetter": "F",
+      "leftName": "シュトラッサー",
+      "rightName": "藤香紗",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=69&se=18&t=1",
+      "html": "./matches/C-F.html"
+    },
+    "C-G": {
+      "round": 4,
+      "leftLetter": "C",
+      "rightLetter": "G",
+      "leftName": "シュトラッサー",
+      "rightName": "やなぎかぜ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=70&se=18&t=1",
+      "html": "./matches/C-G.html"
+    },
+    "C-H": {
+      "round": 10,
+      "leftLetter": "C",
+      "rightLetter": "H",
+      "leftName": "シュトラッサー",
+      "rightName": "赤い酒",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=71&se=18&t=1",
+      "html": "./matches/C-H.html"
+    },
+    "C-I": {
+      "round": 5,
+      "leftLetter": "C",
+      "rightLetter": "I",
+      "leftName": "シュトラッサー",
+      "rightName": "りふと",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=72&se=18&t=1",
+      "html": "./matches/C-I.html"
+    },
+    "C-J": {
+      "round": 11,
+      "leftLetter": "C",
+      "rightLetter": "J",
+      "leftName": "シュトラッサー",
+      "rightName": "まる",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=73&se=18&t=1",
+      "html": "./matches/C-J.html"
+    },
+    "C-K": {
+      "round": 6,
+      "leftLetter": "C",
+      "rightLetter": "K",
+      "leftName": "シュトラッサー",
+      "rightName": "pipe",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=74&se=18&t=1",
+      "html": "./matches/C-K.html"
+    },
+    "C-L": {
+      "round": 1,
+      "leftLetter": "C",
+      "rightLetter": "L",
+      "leftName": "シュトラッサー",
+      "rightName": "ルゲ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=75&se=18&t=1",
+      "html": "./matches/C-L.html"
     },
     "D-E": {
       "round": 9,
       "leftLetter": "D",
       "rightLetter": "E",
       "leftName": "シルファ",
-      "rightName": "koganei"
-    },
-    "E-F": {
-      "round": 10,
-      "leftLetter": "E",
-      "rightLetter": "F",
-      "leftName": "koganei",
-      "rightName": "藤香紗"
-    },
-    "E-H": {
-      "round": 11,
-      "leftLetter": "E",
-      "rightLetter": "H",
-      "leftName": "koganei",
-      "rightName": "赤い酒"
-    },
-    "E-K": {
-      "round": 7,
-      "leftLetter": "E",
-      "rightLetter": "K",
-      "leftName": "koganei",
-      "rightName": "pipe"
-    },
-    "D-K": {
-      "round": 1,
-      "leftLetter": "D",
-      "rightLetter": "K",
-      "leftName": "シルファ",
-      "rightName": "pipe"
-    },
-    "F-K": {
-      "round": 2,
-      "leftLetter": "F",
-      "rightLetter": "K",
-      "leftName": "藤香紗",
-      "rightName": "pipe"
-    },
-    "H-K": {
-      "round": 3,
-      "leftLetter": "H",
-      "rightLetter": "K",
-      "leftName": "赤い酒",
-      "rightName": "pipe"
+      "rightName": "koganei",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=100&se=18&t=1",
+      "html": "./matches/D-E.html"
     },
     "D-F": {
       "round": 4,
       "leftLetter": "D",
       "rightLetter": "F",
       "leftName": "シルファ",
-      "rightName": "藤香紗"
+      "rightName": "藤香紗",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=101&se=18&t=1",
+      "html": "./matches/D-F.html"
     },
-    "F-H": {
-      "round": 6,
-      "leftLetter": "F",
-      "rightLetter": "H",
-      "leftName": "藤香紗",
-      "rightName": "赤い酒"
+    "D-G": {
+      "round": 10,
+      "leftLetter": "D",
+      "rightLetter": "G",
+      "leftName": "シルファ",
+      "rightName": "やなぎかぜ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=102&se=18&t=1",
+      "html": "./matches/D-G.html"
     },
     "D-H": {
       "round": 5,
       "leftLetter": "D",
       "rightLetter": "H",
       "leftName": "シルファ",
-      "rightName": "赤い酒"
+      "rightName": "赤い酒",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=103&se=18&t=1",
+      "html": "./matches/D-H.html"
+    },
+    "D-I": {
+      "round": 11,
+      "leftLetter": "D",
+      "rightLetter": "I",
+      "leftName": "シルファ",
+      "rightName": "りふと",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=104&se=18&t=1",
+      "html": "./matches/D-I.html"
+    },
+    "D-J": {
+      "round": 6,
+      "leftLetter": "D",
+      "rightLetter": "J",
+      "leftName": "シルファ",
+      "rightName": "まる",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=105&se=18&t=1",
+      "html": "./matches/D-J.html"
+    },
+    "D-K": {
+      "round": 1,
+      "leftLetter": "D",
+      "rightLetter": "K",
+      "leftName": "シルファ",
+      "rightName": "pipe",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=106&se=18&t=1",
+      "html": "./matches/D-K.html"
+    },
+    "D-L": {
+      "round": 7,
+      "leftLetter": "D",
+      "rightLetter": "L",
+      "leftName": "シルファ",
+      "rightName": "ルゲ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=107&se=18&t=1",
+      "html": "./matches/D-L.html"
+    },
+    "E-F": {
+      "round": 10,
+      "leftLetter": "E",
+      "rightLetter": "F",
+      "leftName": "koganei",
+      "rightName": "藤香紗",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=133&se=18&t=1",
+      "html": "./matches/E-F.html"
+    },
+    "E-G": {
+      "round": 5,
+      "leftLetter": "E",
+      "rightLetter": "G",
+      "leftName": "koganei",
+      "rightName": "やなぎかぜ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=134&se=18&t=1",
+      "html": "./matches/E-G.html"
+    },
+    "E-H": {
+      "round": 11,
+      "leftLetter": "E",
+      "rightLetter": "H",
+      "leftName": "koganei",
+      "rightName": "赤い酒",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=135&se=18&t=1",
+      "html": "./matches/E-H.html"
+    },
+    "E-I": {
+      "round": 6,
+      "leftLetter": "E",
+      "rightLetter": "I",
+      "leftName": "koganei",
+      "rightName": "りふと",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=136&se=18&t=1",
+      "html": "./matches/E-I.html"
+    },
+    "E-J": {
+      "round": 1,
+      "leftLetter": "E",
+      "rightLetter": "J",
+      "leftName": "koganei",
+      "rightName": "まる",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=137&se=18&t=1",
+      "html": "./matches/E-J.html"
+    },
+    "E-K": {
+      "round": 7,
+      "leftLetter": "E",
+      "rightLetter": "K",
+      "leftName": "koganei",
+      "rightName": "pipe",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=138&se=18&t=1",
+      "html": "./matches/E-K.html"
+    },
+    "E-L": {
+      "round": 2,
+      "leftLetter": "E",
+      "rightLetter": "L",
+      "leftName": "koganei",
+      "rightName": "ルゲ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=139&se=18&t=1",
+      "html": "./matches/E-L.html"
+    },
+    "F-G": {
+      "round": 11,
+      "leftLetter": "F",
+      "rightLetter": "G",
+      "leftName": "藤香紗",
+      "rightName": "やなぎかぜ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=166&se=18&t=1",
+      "html": "./matches/F-G.html"
+    },
+    "F-H": {
+      "round": 6,
+      "leftLetter": "F",
+      "rightLetter": "H",
+      "leftName": "藤香紗",
+      "rightName": "赤い酒",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=167&se=18&t=1",
+      "html": "./matches/F-H.html"
+    },
+    "F-I": {
+      "round": 1,
+      "leftLetter": "F",
+      "rightLetter": "I",
+      "leftName": "藤香紗",
+      "rightName": "りふと",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=168&se=18&t=1",
+      "html": "./matches/F-I.html"
+    },
+    "F-J": {
+      "round": 7,
+      "leftLetter": "F",
+      "rightLetter": "J",
+      "leftName": "藤香紗",
+      "rightName": "まる",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=169&se=18&t=1",
+      "html": "./matches/F-J.html"
+    },
+    "F-K": {
+      "round": 2,
+      "leftLetter": "F",
+      "rightLetter": "K",
+      "leftName": "藤香紗",
+      "rightName": "pipe",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=170&se=18&t=1",
+      "html": "./matches/F-K.html"
+    },
+    "F-L": {
+      "round": 8,
+      "leftLetter": "F",
+      "rightLetter": "L",
+      "leftName": "藤香紗",
+      "rightName": "ルゲ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=171&se=18&t=1",
+      "html": "./matches/F-L.html"
+    },
+    "G-H": {
+      "round": 1,
+      "leftLetter": "G",
+      "rightLetter": "H",
+      "leftName": "やなぎかぜ",
+      "rightName": "赤い酒",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=199&se=18&t=1",
+      "html": "./matches/G-H.html"
+    },
+    "G-I": {
+      "round": 7,
+      "leftLetter": "G",
+      "rightLetter": "I",
+      "leftName": "やなぎかぜ",
+      "rightName": "りふと",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=200&se=18&t=1",
+      "html": "./matches/G-I.html"
+    },
+    "G-J": {
+      "round": 2,
+      "leftLetter": "G",
+      "rightLetter": "J",
+      "leftName": "やなぎかぜ",
+      "rightName": "まる",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=201&se=18&t=1",
+      "html": "./matches/G-J.html"
+    },
+    "G-K": {
+      "round": 8,
+      "leftLetter": "G",
+      "rightLetter": "K",
+      "leftName": "やなぎかぜ",
+      "rightName": "pipe",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=202&se=18&t=1",
+      "html": "./matches/G-K.html"
+    },
+    "G-L": {
+      "round": 3,
+      "leftLetter": "G",
+      "rightLetter": "L",
+      "leftName": "やなぎかぜ",
+      "rightName": "ルゲ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=203&se=18&t=1",
+      "html": "./matches/G-L.html"
+    },
+    "H-I": {
+      "round": 2,
+      "leftLetter": "H",
+      "rightLetter": "I",
+      "leftName": "赤い酒",
+      "rightName": "りふと",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=232&se=18&t=1",
+      "html": "./matches/H-I.html"
+    },
+    "H-J": {
+      "round": 8,
+      "leftLetter": "H",
+      "rightLetter": "J",
+      "leftName": "赤い酒",
+      "rightName": "まる",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=233&se=18&t=1",
+      "html": "./matches/H-J.html"
+    },
+    "H-K": {
+      "round": 3,
+      "leftLetter": "H",
+      "rightLetter": "K",
+      "leftName": "赤い酒",
+      "rightName": "pipe",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=234&se=18&t=1",
+      "html": "./matches/H-K.html"
+    },
+    "H-L": {
+      "round": 9,
+      "leftLetter": "H",
+      "rightLetter": "L",
+      "leftName": "赤い酒",
+      "rightName": "ルゲ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=235&se=18&t=1",
+      "html": "./matches/H-L.html"
+    },
+    "I-J": {
+      "round": 3,
+      "leftLetter": "I",
+      "rightLetter": "J",
+      "leftName": "りふと",
+      "rightName": "まる",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=265&se=18&t=1",
+      "html": "./matches/I-J.html"
+    },
+    "I-K": {
+      "round": 9,
+      "leftLetter": "I",
+      "rightLetter": "K",
+      "leftName": "りふと",
+      "rightName": "pipe",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=266&se=18&t=1",
+      "html": "./matches/I-K.html"
+    },
+    "I-L": {
+      "round": 4,
+      "leftLetter": "I",
+      "rightLetter": "L",
+      "leftName": "りふと",
+      "rightName": "ルゲ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=267&se=18&t=1",
+      "html": "./matches/I-L.html"
+    },
+    "J-K": {
+      "round": 4,
+      "leftLetter": "J",
+      "rightLetter": "K",
+      "leftName": "まる",
+      "rightName": "pipe",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=298&se=18&t=1",
+      "html": "./matches/J-K.html"
+    },
+    "J-L": {
+      "round": 10,
+      "leftLetter": "J",
+      "rightLetter": "L",
+      "leftName": "まる",
+      "rightName": "ルゲ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=299&se=18&t=1",
+      "html": "./matches/J-L.html"
+    },
+    "K-L": {
+      "round": 5,
+      "leftLetter": "K",
+      "rightLetter": "L",
+      "leftName": "pipe",
+      "rightName": "ルゲ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=4&v=331&se=18&t=1",
+      "html": "./matches/K-L.html"
     }
   }
 }

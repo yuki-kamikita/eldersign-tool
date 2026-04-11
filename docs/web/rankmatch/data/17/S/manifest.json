@@ -2,467 +2,599 @@
   "phase": 17,
   "group": "S",
   "matches": {
-    "A-C": {
-      "round": 2,
-      "leftLetter": "A",
-      "rightLetter": "C",
-      "leftName": "ClayClay",
-      "rightName": "カリスト"
-    },
-    "B-C": {
-      "round": 7,
-      "leftLetter": "B",
-      "rightLetter": "C",
-      "leftName": "savekimo",
-      "rightName": "カリスト"
-    },
-    "C-D": {
-      "round": 8,
-      "leftLetter": "C",
-      "rightLetter": "D",
-      "leftName": "カリスト",
-      "rightName": "タカヤマン"
-    },
-    "C-F": {
-      "round": 9,
-      "leftLetter": "C",
-      "rightLetter": "F",
-      "leftName": "カリスト",
-      "rightName": "ハイジ"
-    },
-    "C-I": {
-      "round": 5,
-      "leftLetter": "C",
-      "rightLetter": "I",
-      "leftName": "カリスト",
-      "rightName": "センカ"
-    },
-    "C-K": {
-      "round": 6,
-      "leftLetter": "C",
-      "rightLetter": "K",
-      "leftName": "カリスト",
-      "rightName": "ゆき"
-    },
-    "C-E": {
-      "round": 3,
-      "leftLetter": "C",
-      "rightLetter": "E",
-      "leftName": "カリスト",
-      "rightName": "なまはる"
-    },
-    "C-G": {
-      "round": 4,
-      "leftLetter": "C",
-      "rightLetter": "G",
-      "leftName": "カリスト",
-      "rightName": "Lollypop"
-    },
-    "C-H": {
-      "round": 10,
-      "leftLetter": "C",
-      "rightLetter": "H",
-      "leftName": "カリスト",
-      "rightName": "ユウア"
-    },
-    "C-J": {
-      "round": 11,
-      "leftLetter": "C",
-      "rightLetter": "J",
-      "leftName": "カリスト",
-      "rightName": "ポリープ"
-    },
-    "C-L": {
-      "round": 1,
-      "leftLetter": "C",
-      "rightLetter": "L",
-      "leftName": "カリスト",
-      "rightName": "イマクロ"
-    },
     "A-B": {
       "round": 1,
       "leftLetter": "A",
       "rightLetter": "B",
       "leftName": "ClayClay",
-      "rightName": "savekimo"
+      "rightName": "savekimo",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=1&se=17&t=1",
+      "html": "./matches/A-B.html"
     },
-    "A-E": {
-      "round": 4,
+    "A-C": {
+      "round": 2,
       "leftLetter": "A",
-      "rightLetter": "E",
+      "rightLetter": "C",
       "leftName": "ClayClay",
-      "rightName": "なまはる"
-    },
-    "A-F": {
-      "round": 5,
-      "leftLetter": "A",
-      "rightLetter": "F",
-      "leftName": "ClayClay",
-      "rightName": "ハイジ"
-    },
-    "A-G": {
-      "round": 6,
-      "leftLetter": "A",
-      "rightLetter": "G",
-      "leftName": "ClayClay",
-      "rightName": "Lollypop"
-    },
-    "A-I": {
-      "round": 8,
-      "leftLetter": "A",
-      "rightLetter": "I",
-      "leftName": "ClayClay",
-      "rightName": "センカ"
-    },
-    "A-J": {
-      "round": 9,
-      "leftLetter": "A",
-      "rightLetter": "J",
-      "leftName": "ClayClay",
-      "rightName": "ポリープ"
-    },
-    "A-L": {
-      "round": 11,
-      "leftLetter": "A",
-      "rightLetter": "L",
-      "leftName": "ClayClay",
-      "rightName": "イマクロ"
+      "rightName": "カリスト",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=2&se=17&t=1",
+      "html": "./matches/A-C.html"
     },
     "A-D": {
       "round": 3,
       "leftLetter": "A",
       "rightLetter": "D",
       "leftName": "ClayClay",
-      "rightName": "タカヤマン"
+      "rightName": "タカヤマン",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=3&se=17&t=1",
+      "html": "./matches/A-D.html"
+    },
+    "A-E": {
+      "round": 4,
+      "leftLetter": "A",
+      "rightLetter": "E",
+      "leftName": "ClayClay",
+      "rightName": "なまはる",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=4&se=17&t=1",
+      "html": "./matches/A-E.html"
+    },
+    "A-F": {
+      "round": 5,
+      "leftLetter": "A",
+      "rightLetter": "F",
+      "leftName": "ClayClay",
+      "rightName": "ハイジ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=5&se=17&t=1",
+      "html": "./matches/A-F.html"
+    },
+    "A-G": {
+      "round": 6,
+      "leftLetter": "A",
+      "rightLetter": "G",
+      "leftName": "ClayClay",
+      "rightName": "Lollypop",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=6&se=17&t=1",
+      "html": "./matches/A-G.html"
     },
     "A-H": {
       "round": 7,
       "leftLetter": "A",
       "rightLetter": "H",
       "leftName": "ClayClay",
-      "rightName": "ユウア"
+      "rightName": "ユウア",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=7&se=17&t=1",
+      "html": "./matches/A-H.html"
+    },
+    "A-I": {
+      "round": 8,
+      "leftLetter": "A",
+      "rightLetter": "I",
+      "leftName": "ClayClay",
+      "rightName": "センカ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=8&se=17&t=1",
+      "html": "./matches/A-I.html"
+    },
+    "A-J": {
+      "round": 9,
+      "leftLetter": "A",
+      "rightLetter": "J",
+      "leftName": "ClayClay",
+      "rightName": "ポリープ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=9&se=17&t=1",
+      "html": "./matches/A-J.html"
     },
     "A-K": {
       "round": 10,
       "leftLetter": "A",
       "rightLetter": "K",
       "leftName": "ClayClay",
-      "rightName": "ゆき"
+      "rightName": "ゆき",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=10&se=17&t=1",
+      "html": "./matches/A-K.html"
     },
-    "B-G": {
-      "round": 9,
-      "leftLetter": "B",
-      "rightLetter": "G",
-      "leftName": "savekimo",
-      "rightName": "Lollypop"
-    },
-    "D-G": {
-      "round": 10,
-      "leftLetter": "D",
-      "rightLetter": "G",
-      "leftName": "タカヤマン",
-      "rightName": "Lollypop"
-    },
-    "E-G": {
-      "round": 5,
-      "leftLetter": "E",
-      "rightLetter": "G",
-      "leftName": "なまはる",
-      "rightName": "Lollypop"
-    },
-    "F-G": {
+    "A-L": {
       "round": 11,
-      "leftLetter": "F",
-      "rightLetter": "G",
-      "leftName": "ハイジ",
-      "rightName": "Lollypop"
-    },
-    "G-H": {
-      "round": 1,
-      "leftLetter": "G",
-      "rightLetter": "H",
-      "leftName": "Lollypop",
-      "rightName": "ユウア"
-    },
-    "G-I": {
-      "round": 7,
-      "leftLetter": "G",
-      "rightLetter": "I",
-      "leftName": "Lollypop",
-      "rightName": "センカ"
-    },
-    "G-J": {
-      "round": 2,
-      "leftLetter": "G",
-      "rightLetter": "J",
-      "leftName": "Lollypop",
-      "rightName": "ポリープ"
-    },
-    "G-K": {
-      "round": 8,
-      "leftLetter": "G",
-      "rightLetter": "K",
-      "leftName": "Lollypop",
-      "rightName": "ゆき"
-    },
-    "G-L": {
-      "round": 3,
-      "leftLetter": "G",
+      "leftLetter": "A",
       "rightLetter": "L",
-      "leftName": "Lollypop",
-      "rightName": "イマクロ"
+      "leftName": "ClayClay",
+      "rightName": "イマクロ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=11&se=17&t=1",
+      "html": "./matches/A-L.html"
     },
-    "B-K": {
-      "round": 11,
-      "leftLetter": "B",
-      "rightLetter": "K",
-      "leftName": "savekimo",
-      "rightName": "ゆき"
-    },
-    "D-K": {
-      "round": 1,
-      "leftLetter": "D",
-      "rightLetter": "K",
-      "leftName": "タカヤマン",
-      "rightName": "ゆき"
-    },
-    "E-K": {
+    "B-C": {
       "round": 7,
-      "leftLetter": "E",
-      "rightLetter": "K",
-      "leftName": "なまはる",
-      "rightName": "ゆき"
-    },
-    "F-K": {
-      "round": 2,
-      "leftLetter": "F",
-      "rightLetter": "K",
-      "leftName": "ハイジ",
-      "rightName": "ゆき"
-    },
-    "H-K": {
-      "round": 3,
-      "leftLetter": "H",
-      "rightLetter": "K",
-      "leftName": "ユウア",
-      "rightName": "ゆき"
-    },
-    "I-K": {
-      "round": 9,
-      "leftLetter": "I",
-      "rightLetter": "K",
-      "leftName": "センカ",
-      "rightName": "ゆき"
-    },
-    "J-K": {
-      "round": 4,
-      "leftLetter": "J",
-      "rightLetter": "K",
-      "leftName": "ポリープ",
-      "rightName": "ゆき"
-    },
-    "K-L": {
-      "round": 5,
-      "leftLetter": "K",
-      "rightLetter": "L",
-      "leftName": "ゆき",
-      "rightName": "イマクロ"
-    },
-    "D-I": {
-      "round": 11,
-      "leftLetter": "D",
-      "rightLetter": "I",
-      "leftName": "タカヤマン",
-      "rightName": "センカ"
+      "leftLetter": "B",
+      "rightLetter": "C",
+      "leftName": "savekimo",
+      "rightName": "カリスト",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=34&se=17&t=1",
+      "html": "./matches/B-C.html"
     },
     "B-D": {
       "round": 2,
       "leftLetter": "B",
       "rightLetter": "D",
       "leftName": "savekimo",
-      "rightName": "タカヤマン"
-    },
-    "D-H": {
-      "round": 5,
-      "leftLetter": "D",
-      "rightLetter": "H",
-      "leftName": "タカヤマン",
-      "rightName": "ユウア"
-    },
-    "D-F": {
-      "round": 4,
-      "leftLetter": "D",
-      "rightLetter": "F",
-      "leftName": "タカヤマン",
-      "rightName": "ハイジ"
-    },
-    "D-E": {
-      "round": 9,
-      "leftLetter": "D",
-      "rightLetter": "E",
-      "leftName": "タカヤマン",
-      "rightName": "なまはる"
-    },
-    "D-J": {
-      "round": 6,
-      "leftLetter": "D",
-      "rightLetter": "J",
-      "leftName": "タカヤマン",
-      "rightName": "ポリープ"
-    },
-    "D-L": {
-      "round": 7,
-      "leftLetter": "D",
-      "rightLetter": "L",
-      "leftName": "タカヤマン",
-      "rightName": "イマクロ"
-    },
-    "B-L": {
-      "round": 6,
-      "leftLetter": "B",
-      "rightLetter": "L",
-      "leftName": "savekimo",
-      "rightName": "イマクロ"
-    },
-    "E-L": {
-      "round": 2,
-      "leftLetter": "E",
-      "rightLetter": "L",
-      "leftName": "なまはる",
-      "rightName": "イマクロ"
-    },
-    "F-L": {
-      "round": 8,
-      "leftLetter": "F",
-      "rightLetter": "L",
-      "leftName": "ハイジ",
-      "rightName": "イマクロ"
-    },
-    "H-L": {
-      "round": 9,
-      "leftLetter": "H",
-      "rightLetter": "L",
-      "leftName": "ユウア",
-      "rightName": "イマクロ"
-    },
-    "J-L": {
-      "round": 10,
-      "leftLetter": "J",
-      "rightLetter": "L",
-      "leftName": "ポリープ",
-      "rightName": "イマクロ"
-    },
-    "I-L": {
-      "round": 4,
-      "leftLetter": "I",
-      "rightLetter": "L",
-      "leftName": "センカ",
-      "rightName": "イマクロ"
-    },
-    "B-H": {
-      "round": 4,
-      "leftLetter": "B",
-      "rightLetter": "H",
-      "leftName": "savekimo",
-      "rightName": "ユウア"
-    },
-    "F-H": {
-      "round": 6,
-      "leftLetter": "F",
-      "rightLetter": "H",
-      "leftName": "ハイジ",
-      "rightName": "ユウア"
-    },
-    "H-J": {
-      "round": 8,
-      "leftLetter": "H",
-      "rightLetter": "J",
-      "leftName": "ユウア",
-      "rightName": "ポリープ"
-    },
-    "E-H": {
-      "round": 11,
-      "leftLetter": "E",
-      "rightLetter": "H",
-      "leftName": "なまはる",
-      "rightName": "ユウア"
-    },
-    "H-I": {
-      "round": 2,
-      "leftLetter": "H",
-      "rightLetter": "I",
-      "leftName": "ユウア",
-      "rightName": "センカ"
-    },
-    "B-I": {
-      "round": 10,
-      "leftLetter": "B",
-      "rightLetter": "I",
-      "leftName": "savekimo",
-      "rightName": "センカ"
-    },
-    "E-I": {
-      "round": 6,
-      "leftLetter": "E",
-      "rightLetter": "I",
-      "leftName": "なまはる",
-      "rightName": "センカ"
-    },
-    "I-J": {
-      "round": 3,
-      "leftLetter": "I",
-      "rightLetter": "J",
-      "leftName": "センカ",
-      "rightName": "ポリープ"
-    },
-    "F-I": {
-      "round": 1,
-      "leftLetter": "F",
-      "rightLetter": "I",
-      "leftName": "ハイジ",
-      "rightName": "センカ"
-    },
-    "B-F": {
-      "round": 3,
-      "leftLetter": "B",
-      "rightLetter": "F",
-      "leftName": "savekimo",
-      "rightName": "ハイジ"
-    },
-    "E-F": {
-      "round": 10,
-      "leftLetter": "E",
-      "rightLetter": "F",
-      "leftName": "なまはる",
-      "rightName": "ハイジ"
-    },
-    "F-J": {
-      "round": 7,
-      "leftLetter": "F",
-      "rightLetter": "J",
-      "leftName": "ハイジ",
-      "rightName": "ポリープ"
+      "rightName": "タカヤマン",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=35&se=17&t=1",
+      "html": "./matches/B-D.html"
     },
     "B-E": {
       "round": 8,
       "leftLetter": "B",
       "rightLetter": "E",
       "leftName": "savekimo",
-      "rightName": "なまはる"
+      "rightName": "なまはる",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=36&se=17&t=1",
+      "html": "./matches/B-E.html"
     },
-    "E-J": {
-      "round": 1,
-      "leftLetter": "E",
-      "rightLetter": "J",
-      "leftName": "なまはる",
-      "rightName": "ポリープ"
+    "B-F": {
+      "round": 3,
+      "leftLetter": "B",
+      "rightLetter": "F",
+      "leftName": "savekimo",
+      "rightName": "ハイジ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=37&se=17&t=1",
+      "html": "./matches/B-F.html"
+    },
+    "B-G": {
+      "round": 9,
+      "leftLetter": "B",
+      "rightLetter": "G",
+      "leftName": "savekimo",
+      "rightName": "Lollypop",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=38&se=17&t=1",
+      "html": "./matches/B-G.html"
+    },
+    "B-H": {
+      "round": 4,
+      "leftLetter": "B",
+      "rightLetter": "H",
+      "leftName": "savekimo",
+      "rightName": "ユウア",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=39&se=17&t=1",
+      "html": "./matches/B-H.html"
+    },
+    "B-I": {
+      "round": 10,
+      "leftLetter": "B",
+      "rightLetter": "I",
+      "leftName": "savekimo",
+      "rightName": "センカ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=40&se=17&t=1",
+      "html": "./matches/B-I.html"
     },
     "B-J": {
       "round": 5,
       "leftLetter": "B",
       "rightLetter": "J",
       "leftName": "savekimo",
-      "rightName": "ポリープ"
+      "rightName": "ポリープ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=41&se=17&t=1",
+      "html": "./matches/B-J.html"
+    },
+    "B-K": {
+      "round": 11,
+      "leftLetter": "B",
+      "rightLetter": "K",
+      "leftName": "savekimo",
+      "rightName": "ゆき",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=42&se=17&t=1",
+      "html": "./matches/B-K.html"
+    },
+    "B-L": {
+      "round": 6,
+      "leftLetter": "B",
+      "rightLetter": "L",
+      "leftName": "savekimo",
+      "rightName": "イマクロ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=43&se=17&t=1",
+      "html": "./matches/B-L.html"
+    },
+    "C-D": {
+      "round": 8,
+      "leftLetter": "C",
+      "rightLetter": "D",
+      "leftName": "カリスト",
+      "rightName": "タカヤマン",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=67&se=17&t=1",
+      "html": "./matches/C-D.html"
+    },
+    "C-E": {
+      "round": 3,
+      "leftLetter": "C",
+      "rightLetter": "E",
+      "leftName": "カリスト",
+      "rightName": "なまはる",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=68&se=17&t=1",
+      "html": "./matches/C-E.html"
+    },
+    "C-F": {
+      "round": 9,
+      "leftLetter": "C",
+      "rightLetter": "F",
+      "leftName": "カリスト",
+      "rightName": "ハイジ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=69&se=17&t=1",
+      "html": "./matches/C-F.html"
+    },
+    "C-G": {
+      "round": 4,
+      "leftLetter": "C",
+      "rightLetter": "G",
+      "leftName": "カリスト",
+      "rightName": "Lollypop",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=70&se=17&t=1",
+      "html": "./matches/C-G.html"
+    },
+    "C-H": {
+      "round": 10,
+      "leftLetter": "C",
+      "rightLetter": "H",
+      "leftName": "カリスト",
+      "rightName": "ユウア",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=71&se=17&t=1",
+      "html": "./matches/C-H.html"
+    },
+    "C-I": {
+      "round": 5,
+      "leftLetter": "C",
+      "rightLetter": "I",
+      "leftName": "カリスト",
+      "rightName": "センカ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=72&se=17&t=1",
+      "html": "./matches/C-I.html"
+    },
+    "C-J": {
+      "round": 11,
+      "leftLetter": "C",
+      "rightLetter": "J",
+      "leftName": "カリスト",
+      "rightName": "ポリープ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=73&se=17&t=1",
+      "html": "./matches/C-J.html"
+    },
+    "C-K": {
+      "round": 6,
+      "leftLetter": "C",
+      "rightLetter": "K",
+      "leftName": "カリスト",
+      "rightName": "ゆき",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=74&se=17&t=1",
+      "html": "./matches/C-K.html"
+    },
+    "C-L": {
+      "round": 1,
+      "leftLetter": "C",
+      "rightLetter": "L",
+      "leftName": "カリスト",
+      "rightName": "イマクロ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=75&se=17&t=1",
+      "html": "./matches/C-L.html"
+    },
+    "D-E": {
+      "round": 9,
+      "leftLetter": "D",
+      "rightLetter": "E",
+      "leftName": "タカヤマン",
+      "rightName": "なまはる",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=100&se=17&t=1",
+      "html": "./matches/D-E.html"
+    },
+    "D-F": {
+      "round": 4,
+      "leftLetter": "D",
+      "rightLetter": "F",
+      "leftName": "タカヤマン",
+      "rightName": "ハイジ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=101&se=17&t=1",
+      "html": "./matches/D-F.html"
+    },
+    "D-G": {
+      "round": 10,
+      "leftLetter": "D",
+      "rightLetter": "G",
+      "leftName": "タカヤマン",
+      "rightName": "Lollypop",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=102&se=17&t=1",
+      "html": "./matches/D-G.html"
+    },
+    "D-H": {
+      "round": 5,
+      "leftLetter": "D",
+      "rightLetter": "H",
+      "leftName": "タカヤマン",
+      "rightName": "ユウア",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=103&se=17&t=1",
+      "html": "./matches/D-H.html"
+    },
+    "D-I": {
+      "round": 11,
+      "leftLetter": "D",
+      "rightLetter": "I",
+      "leftName": "タカヤマン",
+      "rightName": "センカ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=104&se=17&t=1",
+      "html": "./matches/D-I.html"
+    },
+    "D-J": {
+      "round": 6,
+      "leftLetter": "D",
+      "rightLetter": "J",
+      "leftName": "タカヤマン",
+      "rightName": "ポリープ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=105&se=17&t=1",
+      "html": "./matches/D-J.html"
+    },
+    "D-K": {
+      "round": 1,
+      "leftLetter": "D",
+      "rightLetter": "K",
+      "leftName": "タカヤマン",
+      "rightName": "ゆき",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=106&se=17&t=1",
+      "html": "./matches/D-K.html"
+    },
+    "D-L": {
+      "round": 7,
+      "leftLetter": "D",
+      "rightLetter": "L",
+      "leftName": "タカヤマン",
+      "rightName": "イマクロ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=107&se=17&t=1",
+      "html": "./matches/D-L.html"
+    },
+    "E-F": {
+      "round": 10,
+      "leftLetter": "E",
+      "rightLetter": "F",
+      "leftName": "なまはる",
+      "rightName": "ハイジ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=133&se=17&t=1",
+      "html": "./matches/E-F.html"
+    },
+    "E-G": {
+      "round": 5,
+      "leftLetter": "E",
+      "rightLetter": "G",
+      "leftName": "なまはる",
+      "rightName": "Lollypop",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=134&se=17&t=1",
+      "html": "./matches/E-G.html"
+    },
+    "E-H": {
+      "round": 11,
+      "leftLetter": "E",
+      "rightLetter": "H",
+      "leftName": "なまはる",
+      "rightName": "ユウア",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=135&se=17&t=1",
+      "html": "./matches/E-H.html"
+    },
+    "E-I": {
+      "round": 6,
+      "leftLetter": "E",
+      "rightLetter": "I",
+      "leftName": "なまはる",
+      "rightName": "センカ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=136&se=17&t=1",
+      "html": "./matches/E-I.html"
+    },
+    "E-J": {
+      "round": 1,
+      "leftLetter": "E",
+      "rightLetter": "J",
+      "leftName": "なまはる",
+      "rightName": "ポリープ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=137&se=17&t=1",
+      "html": "./matches/E-J.html"
+    },
+    "E-K": {
+      "round": 7,
+      "leftLetter": "E",
+      "rightLetter": "K",
+      "leftName": "なまはる",
+      "rightName": "ゆき",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=138&se=17&t=1",
+      "html": "./matches/E-K.html"
+    },
+    "E-L": {
+      "round": 2,
+      "leftLetter": "E",
+      "rightLetter": "L",
+      "leftName": "なまはる",
+      "rightName": "イマクロ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=139&se=17&t=1",
+      "html": "./matches/E-L.html"
+    },
+    "F-G": {
+      "round": 11,
+      "leftLetter": "F",
+      "rightLetter": "G",
+      "leftName": "ハイジ",
+      "rightName": "Lollypop",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=166&se=17&t=1",
+      "html": "./matches/F-G.html"
+    },
+    "F-H": {
+      "round": 6,
+      "leftLetter": "F",
+      "rightLetter": "H",
+      "leftName": "ハイジ",
+      "rightName": "ユウア",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=167&se=17&t=1",
+      "html": "./matches/F-H.html"
+    },
+    "F-I": {
+      "round": 1,
+      "leftLetter": "F",
+      "rightLetter": "I",
+      "leftName": "ハイジ",
+      "rightName": "センカ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=168&se=17&t=1",
+      "html": "./matches/F-I.html"
+    },
+    "F-J": {
+      "round": 7,
+      "leftLetter": "F",
+      "rightLetter": "J",
+      "leftName": "ハイジ",
+      "rightName": "ポリープ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=169&se=17&t=1",
+      "html": "./matches/F-J.html"
+    },
+    "F-K": {
+      "round": 2,
+      "leftLetter": "F",
+      "rightLetter": "K",
+      "leftName": "ハイジ",
+      "rightName": "ゆき",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=170&se=17&t=1",
+      "html": "./matches/F-K.html"
+    },
+    "F-L": {
+      "round": 8,
+      "leftLetter": "F",
+      "rightLetter": "L",
+      "leftName": "ハイジ",
+      "rightName": "イマクロ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=171&se=17&t=1",
+      "html": "./matches/F-L.html"
+    },
+    "G-H": {
+      "round": 1,
+      "leftLetter": "G",
+      "rightLetter": "H",
+      "leftName": "Lollypop",
+      "rightName": "ユウア",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=199&se=17&t=1",
+      "html": "./matches/G-H.html"
+    },
+    "G-I": {
+      "round": 7,
+      "leftLetter": "G",
+      "rightLetter": "I",
+      "leftName": "Lollypop",
+      "rightName": "センカ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=200&se=17&t=1",
+      "html": "./matches/G-I.html"
+    },
+    "G-J": {
+      "round": 2,
+      "leftLetter": "G",
+      "rightLetter": "J",
+      "leftName": "Lollypop",
+      "rightName": "ポリープ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=201&se=17&t=1",
+      "html": "./matches/G-J.html"
+    },
+    "G-K": {
+      "round": 8,
+      "leftLetter": "G",
+      "rightLetter": "K",
+      "leftName": "Lollypop",
+      "rightName": "ゆき",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=202&se=17&t=1",
+      "html": "./matches/G-K.html"
+    },
+    "G-L": {
+      "round": 3,
+      "leftLetter": "G",
+      "rightLetter": "L",
+      "leftName": "Lollypop",
+      "rightName": "イマクロ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=203&se=17&t=1",
+      "html": "./matches/G-L.html"
+    },
+    "H-I": {
+      "round": 2,
+      "leftLetter": "H",
+      "rightLetter": "I",
+      "leftName": "ユウア",
+      "rightName": "センカ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=232&se=17&t=1",
+      "html": "./matches/H-I.html"
+    },
+    "H-J": {
+      "round": 8,
+      "leftLetter": "H",
+      "rightLetter": "J",
+      "leftName": "ユウア",
+      "rightName": "ポリープ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=233&se=17&t=1",
+      "html": "./matches/H-J.html"
+    },
+    "H-K": {
+      "round": 3,
+      "leftLetter": "H",
+      "rightLetter": "K",
+      "leftName": "ユウア",
+      "rightName": "ゆき",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=234&se=17&t=1",
+      "html": "./matches/H-K.html"
+    },
+    "H-L": {
+      "round": 9,
+      "leftLetter": "H",
+      "rightLetter": "L",
+      "leftName": "ユウア",
+      "rightName": "イマクロ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=235&se=17&t=1",
+      "html": "./matches/H-L.html"
+    },
+    "I-J": {
+      "round": 3,
+      "leftLetter": "I",
+      "rightLetter": "J",
+      "leftName": "センカ",
+      "rightName": "ポリープ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=265&se=17&t=1",
+      "html": "./matches/I-J.html"
+    },
+    "I-K": {
+      "round": 9,
+      "leftLetter": "I",
+      "rightLetter": "K",
+      "leftName": "センカ",
+      "rightName": "ゆき",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=266&se=17&t=1",
+      "html": "./matches/I-K.html"
+    },
+    "I-L": {
+      "round": 4,
+      "leftLetter": "I",
+      "rightLetter": "L",
+      "leftName": "センカ",
+      "rightName": "イマクロ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=267&se=17&t=1",
+      "html": "./matches/I-L.html"
+    },
+    "J-K": {
+      "round": 4,
+      "leftLetter": "J",
+      "rightLetter": "K",
+      "leftName": "ポリープ",
+      "rightName": "ゆき",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=298&se=17&t=1",
+      "html": "./matches/J-K.html"
+    },
+    "J-L": {
+      "round": 10,
+      "leftLetter": "J",
+      "rightLetter": "L",
+      "leftName": "ポリープ",
+      "rightName": "イマクロ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=299&se=17&t=1",
+      "html": "./matches/J-L.html"
+    },
+    "K-L": {
+      "round": 5,
+      "leftLetter": "K",
+      "rightLetter": "L",
+      "leftName": "ゆき",
+      "rightName": "イマクロ",
+      "sourceUrl": "https://eldersign.jp/rankmatch?cmd=v&rk=5&v=331&se=17&t=1",
+      "html": "./matches/K-L.html"
     }
   }
 }
