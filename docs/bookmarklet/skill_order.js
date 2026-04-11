@@ -45,7 +45,8 @@
       const level = parseLevel(nameLine);
       const statusLine = lines.length >= 2 ? lines[1].replace(/\s+/g, " ").trim() : "";
       const status = parseInitialStatus(statusLine);
-      monsters.push({ name, level, status });
+      const maxHp = parseMaxHp(statusLine);
+      monsters.push({ name, level, status, maxHp });
     });
     return monsters;
   }
@@ -69,6 +70,14 @@
     return `HP${maxHp}${state ? " " + state : ""}`;
   }
 
+  function parseMaxHp(line) {
+    if (!line) return null;
+    const m = line.match(/(\d+)\s*\/\s*(\d+)\s*(.*)$/);
+    if (!m) return null;
+    const maxHp = parseInt(m[2], 10);
+    return Number.isNaN(maxHp) ? null : maxHp;
+  }
+
   function buildMonsterMap(list) {
     const order = [];
     const map = new Map();
@@ -79,6 +88,7 @@
         name: m.name,
         level: m.level ?? null,
         status: m.status,
+        maxHp: m.maxHp ?? null,
         turns: {},
         turnDetails: {},
       });
@@ -89,7 +99,7 @@
   function ensureMonster(mapInfo, name) {
     if (mapInfo.map.has(name)) return mapInfo.map.get(name);
     mapInfo.order.push(name);
-    const m = { name, level: null, status: "", turns: {}, turnDetails: {} };
+    const m = { name, level: null, status: "", maxHp: null, turns: {}, turnDetails: {} };
     mapInfo.map.set(name, m);
     return m;
   }
@@ -103,6 +113,7 @@
     m.turnDetails[turn].push({
       skill,
       variant: detail.variant ?? null,
+      rarityMaxLevel: detail.rarityMaxLevel ?? null,
       imageUrl: detail.imageUrl || "",
     });
   }
@@ -463,6 +474,18 @@
     return Number.isNaN(value) ? null : value;
   }
 
+  function extractMaxLevelFromImage(src) {
+    if (!src) return null;
+    const m = String(src).match(/\/img\/mi\/([bgsp])\//i);
+    if (!m) return null;
+    const key = m[1].toLowerCase();
+    if (key === "b") return 30;
+    if (key === "s") return 50;
+    if (key === "g") return 70;
+    if (key === "p") return 90;
+    return null;
+  }
+
   function getImageFromRound(roundEl) {
     let node = roundEl.previousElementSibling;
     while (node) {
@@ -474,6 +497,41 @@
       node = node.previousElementSibling;
     }
     return "";
+  }
+
+  function collectPreTurnHpDeltas(rounds) {
+    const deltas = new Map();
+    rounds.forEach((p) => {
+      const em = p.querySelector("em");
+      if (!em) return;
+      const skill = extractSupportSkill(em.textContent);
+      if (!skill || !/(HP|ＨＰ)/i.test(skill)) return;
+
+      const lines = getLinesFromElement(p);
+      lines.forEach((line) => {
+        const m = line.match(/^(.+?)は(\d+)回復！$/);
+        if (!m) return;
+        const target = normalizeName(m[1]);
+        const value = parseInt(m[2], 10);
+        if (!target || Number.isNaN(value)) return;
+        deltas.set(target, (deltas.get(target) || 0) + value);
+      });
+    });
+    return deltas;
+  }
+
+  function applyMaxHpDelta(mapInfo, name, value) {
+    const m = mapInfo.map.get(name);
+    if (!m || m.maxHp == null) return false;
+    m.maxHp = Math.max(1, m.maxHp - value);
+    return true;
+  }
+
+  function applyPreTurnMaxHpDeltas(leftInfo, rightInfo, deltas) {
+    deltas.forEach((value, name) => {
+      if (applyMaxHpDelta(leftInfo, name, value)) return;
+      applyMaxHpDelta(rightInfo, name, value);
+    });
   }
 
   function parseBattleDocument(doc = document) {
@@ -514,6 +572,9 @@
     const preTurnRounds = Array.from(doc.querySelectorAll("p.round")).filter(
       (p) => !p.closest("section.turn")
     );
+    const preTurnHpDeltas = collectPreTurnHpDeltas(preTurnRounds);
+    applyPreTurnMaxHpDeltas(leftInfo, rightInfo, preTurnHpDeltas);
+
     preTurnRounds.forEach((p) => {
       const em = p.querySelector("em");
       if (!em) return;
@@ -555,6 +616,7 @@
       rounds.forEach((p) => {
         const imageUrl = getImageFromRound(p);
         const variant = extractVariantNumber(imageUrl);
+        const rarityMaxLevel = extractMaxLevelFromImage(imageUrl);
         const ems = p.querySelectorAll("em");
         let parsed = null;
         for (const em of ems) {
@@ -565,9 +627,17 @@
         if (!parsed.skill) return;
 
         if (leftInfo.map.has(parsed.actor)) {
-          addSkill(leftInfo, parsed.actor, turn, parsed.skill, { variant, imageUrl });
+          addSkill(leftInfo, parsed.actor, turn, parsed.skill, {
+            variant,
+            rarityMaxLevel,
+            imageUrl,
+          });
         } else if (rightInfo.map.has(parsed.actor)) {
-          addSkill(rightInfo, parsed.actor, turn, parsed.skill, { variant, imageUrl });
+          addSkill(rightInfo, parsed.actor, turn, parsed.skill, {
+            variant,
+            rarityMaxLevel,
+            imageUrl,
+          });
         }
       });
     });

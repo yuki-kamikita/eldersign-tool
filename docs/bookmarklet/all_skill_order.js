@@ -7,6 +7,25 @@
   const SCRIPT_BASE_URL = document.currentScript?.src
     ? new URL(".", document.currentScript.src).toString()
     : "https://yuki-kamikita.github.io/eldersign-tool/bookmarklet/";
+  const MAX_SKILL_COUNT = 5;
+  const RARITY = Object.freeze({
+    BRONZE: "BRONZE",
+    SILVER: "SILVER",
+    GOLD: "GOLD",
+    PLATINUM: "PLATINUM",
+  });
+  const RARITY_BY_MAX_LEVEL = Object.freeze({
+    30: RARITY.BRONZE,
+    50: RARITY.SILVER,
+    70: RARITY.GOLD,
+    90: RARITY.PLATINUM,
+  });
+  const GROWTH_COEFF_BY_RARITY = Object.freeze({
+    [RARITY.BRONZE]: 1.0,
+    [RARITY.SILVER]: 1.5,
+    [RARITY.GOLD]: 2.0,
+    [RARITY.PLATINUM]: 2.5,
+  });
 
   // 全角/半角スペースを含む前後の空白を除去
   const normalizeName = (name) => name.replace(/^[\s\u3000]+|[\s\u3000]+$/g, "");
@@ -56,6 +75,72 @@
     return dupSet;
   };
 
+  const getRarity = (maxLevel) => RARITY_BY_MAX_LEVEL[maxLevel] ?? RARITY.BRONZE;
+
+  const getGrowth = (level, maxLevel, rarity) => {
+    const rc = GROWTH_COEFF_BY_RARITY[rarity] ?? 1.0;
+    const t = Math.max(0, (level - 1) / (maxLevel - 1));
+    const G = 1 + rc * t;
+    return { G, sqrtG: Math.sqrt(G) };
+  };
+
+  const estimateLv1Base = (currentTotal, bonus, isHP, level, G, sqrtG) => {
+    if (currentTotal <= 0) return 0;
+    if (level <= 1) return Math.max(1, currentTotal - bonus);
+
+    const factor = isHP ? sqrtG : G;
+    if (!isFinite(factor) || factor <= 0) return Math.max(1, currentTotal - bonus);
+
+    const approx = currentTotal / factor - bonus;
+
+    let best = Math.max(1, Math.floor(approx));
+    let bestDiff = Math.abs(Math.floor((best + bonus) * factor) - currentTotal);
+    let maxExact = null;
+
+    const start = Math.max(1, Math.floor(approx) - 50);
+    const end = Math.floor(approx) + 50;
+
+    for (let cand = start; cand <= end; cand++) {
+      const sim = Math.floor((cand + bonus) * factor);
+      const diff = Math.abs(sim - currentTotal);
+
+      if (sim === currentTotal) {
+        if (maxExact === null || cand > maxExact) maxExact = cand;
+        continue;
+      }
+      if (diff < bestDiff) {
+        bestDiff = diff;
+        best = cand;
+      }
+    }
+    return maxExact !== null ? maxExact : best;
+  };
+
+  const estimateLv1HpCandidates = (maxHp, level, rarityMaxLevel) => {
+    if (!Number.isFinite(maxHp) || maxHp <= 0) return new Set();
+    if (!Number.isFinite(level) || level <= 1) return new Set([maxHp]);
+    if (!Number.isFinite(rarityMaxLevel) || level > rarityMaxLevel) return new Set();
+
+    const rarity = getRarity(rarityMaxLevel);
+    const { G, sqrtG } = getGrowth(level, rarityMaxLevel, rarity);
+    const lv1Hp = estimateLv1Base(maxHp, 0, true, level, G, sqrtG);
+    return lv1Hp > 0 ? new Set([lv1Hp]) : new Set();
+  };
+
+  const hasIntersection = (left, right) => {
+    if (!left?.size || !right?.size) return false;
+    for (const value of left) {
+      if (right.has(value)) return true;
+    }
+    return false;
+  };
+
+  const unionSize = (left, right) => {
+    const merged = new Set(left || []);
+    (right || []).forEach((value) => merged.add(value));
+    return merged.size;
+  };
+
   // モンスターが未登録なら追加して返す
   const ensureMonster = (map, name, suffix) => {
     const key = `${name}__${suffix || ""}`;
@@ -65,6 +150,9 @@
         suffix,
         variant: null,
         level: null,
+        rarityMaxLevel: null,
+        maxHp: null,
+        lv1HpCandidates: new Set(),
         imageUrl: null,
         p0Skills: new Set(),
         actionSkills: new Set(),
@@ -74,11 +162,15 @@
   };
 
   // スキルをモンスターに追加
-  const addSkill = (map, name, suffix, variant, skill, isP0, imageUrl) => {
+  const addSkill = (map, name, suffix, variant, rarityMaxLevel, skill, isP0, imageUrl) => {
     if (!skill) return;
     const m = ensureMonster(map, name, suffix);
     if (variant != null && m.variant == null) {
       m.variant = variant;
+    }
+    if (rarityMaxLevel != null && m.rarityMaxLevel == null) {
+      m.rarityMaxLevel = rarityMaxLevel;
+      m.lv1HpCandidates = estimateLv1HpCandidates(m.maxHp, m.level, m.rarityMaxLevel);
     }
     if (m.imageUrl == null && imageUrl) {
       m.imageUrl = imageUrl;
@@ -123,6 +215,7 @@
         rawName: m.name,
         baseName: getBaseMonsterName(m.name),
         level: m.level,
+        maxHp: m.maxHp,
       }));
   };
 
@@ -137,11 +230,19 @@
       const useSuffix = dupSet.has(baseName) ? suffix : null;
       const target = ensureMonster(map, name, useSuffix);
       if (source.level != null) target.level = source.level;
+      if (source.maxHp != null) {
+        target.maxHp = source.maxHp;
+        target.lv1HpCandidates = estimateLv1HpCandidates(
+          target.maxHp,
+          target.level,
+          target.rarityMaxLevel,
+        );
+      }
 
       const p0Details =
         source.turnDetails?.[0] || (source.turns?.[0] || []).map((skill) => ({ skill }));
       p0Details.forEach((detail) => {
-        addSkill(map, name, useSuffix, null, detail.skill, true, null);
+        addSkill(map, name, useSuffix, null, null, detail.skill, true, null);
       });
 
       for (let turn = 1; turn <= maxTurn; turn += 1) {
@@ -153,6 +254,7 @@
             name,
             useSuffix,
             detail.variant ?? null,
+            detail.rarityMaxLevel ?? null,
             detail.skill,
             false,
             detail.imageUrl || null,
@@ -311,7 +413,7 @@
       return results.get(name);
     };
 
-    // スキルの重なり具合で同一個体か判定
+    // HPとスキル上限で同一個体か判定
     const isSameInstance = (instance, incoming, matchIndex) => {
       // 同一戦闘内でABCが違う場合は別個体扱い
       if (
@@ -323,20 +425,21 @@
         return false;
       }
       // 原種/亜種が違うなら別個体
-      if (instance.variant != null && incoming.variant != null && instance.variant !== incoming.variant) {
+      if (
+        instance.variant != null &&
+        incoming.variant != null &&
+        instance.variant !== incoming.variant
+      ) {
         return false;
       }
-      // 重複判定はアクティブスキルのみを使用する
-      const a = instance.actionSkills;
-      const b = incoming.actionSkills;
-      const minSize = Math.min(a.size, b.size);
-      let overlap = 0;
-      a.forEach((skill) => {
-        if (b.has(skill)) overlap += 1;
-      });
-      if (minSize === 0 && b.size === 0) return false;
-      const overlapEnough = overlap >= Math.ceil(minSize / 2);
-      if (!overlapEnough) return false;
+      // 同一モンスターが同時に覚えられるアクティブスキルは5つまで
+      if (unionSize(instance.actionSkills, incoming.actionSkills) > MAX_SKILL_COUNT) {
+        return false;
+      }
+      const hasHpInfo = instance.lv1HpCandidates?.size && incoming.lv1HpCandidates?.size;
+      if (hasHpInfo) {
+        return hasIntersection(instance.lv1HpCandidates, incoming.lv1HpCandidates);
+      }
       return true;
     };
 
@@ -352,6 +455,9 @@
           suffix: m.suffix,
           variant: m.variant,
           level: m.level ?? null,
+          rarityMaxLevel: m.rarityMaxLevel ?? null,
+          maxHp: m.maxHp ?? null,
+          lv1HpCandidates: new Set(m.lv1HpCandidates || []),
           imageUrl: m.imageUrl || null,
           p0Skills: new Set(m.p0Skills),
           actionSkills: new Set(m.actionSkills),
@@ -361,32 +467,10 @@
         };
 
         let merged = false;
-        if (incoming.actionSkills.size > 0) {
-          for (const inst of instances) {
-            if (!isSameInstance(inst, incoming, matchIndex)) continue;
-            incoming.p0Skills.forEach((skill) => inst.p0Skills.add(skill));
-            incoming.actionSkills.forEach((skill) => inst.actionSkills.add(skill));
-            if (!inst.urls) inst.urls = new Set();
-            if (incoming.url) inst.urls.add(incoming.url);
-            if (incoming.level != null) {
-              inst.maxLevel =
-                inst.maxLevel == null ? incoming.level : Math.max(inst.maxLevel, incoming.level);
-              inst.lastLevel = incoming.level;
-            }
-            if (incoming.variant != null) {
-              inst.variant = incoming.variant;
-            }
-            if (incoming.imageUrl && !inst.imageUrl) {
-              inst.imageUrl = incoming.imageUrl;
-            }
-            inst.lastSeen = matchIndex;
-            merged = true;
-            break;
-          }
-        } else if (instances.length > 0) {
-          // アクティブスキルが未判明なら既存に混ぜる
-          const inst = instances[0];
+        for (const inst of instances) {
+          if (!isSameInstance(inst, incoming, matchIndex)) continue;
           incoming.p0Skills.forEach((skill) => inst.p0Skills.add(skill));
+          incoming.actionSkills.forEach((skill) => inst.actionSkills.add(skill));
           if (!inst.urls) inst.urls = new Set();
           if (incoming.url) inst.urls.add(incoming.url);
           if (incoming.level != null) {
@@ -397,24 +481,35 @@
           if (incoming.variant != null) {
             inst.variant = incoming.variant;
           }
+          if (incoming.rarityMaxLevel != null) {
+            inst.rarityMaxLevel = incoming.rarityMaxLevel;
+          }
+          if (incoming.maxHp != null) {
+            inst.maxHp = incoming.maxHp;
+          }
+          incoming.lv1HpCandidates.forEach((hp) => inst.lv1HpCandidates.add(hp));
           if (incoming.imageUrl && !inst.imageUrl) {
             inst.imageUrl = incoming.imageUrl;
           }
           inst.lastSeen = matchIndex;
           merged = true;
+          break;
         }
 
         if (!merged) {
           instances.push({
             name: m.name,
-          suffix: m.suffix,
-          variant: m.variant,
-          imageUrl: incoming.imageUrl,
-          p0Skills: new Set(incoming.p0Skills),
-          actionSkills: new Set(incoming.actionSkills),
-          maxLevel: incoming.level ?? null,
-          lastLevel: incoming.level ?? null,
-          lastSeen: matchIndex,
+            suffix: m.suffix,
+            variant: m.variant,
+            rarityMaxLevel: incoming.rarityMaxLevel,
+            maxHp: incoming.maxHp,
+            lv1HpCandidates: new Set(incoming.lv1HpCandidates),
+            imageUrl: incoming.imageUrl,
+            p0Skills: new Set(incoming.p0Skills),
+            actionSkills: new Set(incoming.actionSkills),
+            maxLevel: incoming.level ?? null,
+            lastLevel: incoming.level ?? null,
+            lastSeen: matchIndex,
             urls: incoming.url ? new Set([incoming.url]) : new Set(),
           });
         }
