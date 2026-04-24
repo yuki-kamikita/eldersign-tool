@@ -269,6 +269,11 @@
     };
 
     const placePlaceholder = (list, clientY) => {
+      const emptyRow = list.querySelector(".es-empty");
+      if (emptyRow) {
+        list.insertBefore(drag.placeholder, emptyRow);
+        return;
+      }
       const rows = Array.from(list.querySelectorAll(".es-row")).filter(
         (row) => row !== drag.row && row !== drag.placeholder,
       );
