@@ -26,6 +26,7 @@
 #${ROOT_ID}{
   margin-top:8px;
   -webkit-touch-callout:none;
+  touch-action:none;
 }
 #${ROOT_ID} .es-group{
   margin-bottom:10px;
@@ -54,10 +55,12 @@
   width:52px;
   text-align:center;
   white-space:nowrap;
+  touch-action:none;
 }
 #${ROOT_ID} .es-name-cell{
   width:auto;
   text-align:center;
+  touch-action:none;
 }
 #${ROOT_ID} .es-handle-cell{
   width:42px;
@@ -65,6 +68,7 @@
   font-size:22px;
   line-height:1;
   white-space:nowrap;
+  touch-action:none;
 }
 #${ROOT_ID} .es-row{
   touch-action:none;
@@ -205,11 +209,25 @@
   const enableDrag = (state, root, update) => {
     const lists = Array.from(root.querySelectorAll(".es-skill-list"));
     let drag = null;
+    let previousBodyOverflow = "";
+    let previousBodyTouchAction = "";
 
     const clearPressTimer = () => {
       if (!drag?.pressTimer) return;
       clearTimeout(drag.pressTimer);
       drag.pressTimer = null;
+    };
+
+    const lockPageScroll = () => {
+      previousBodyOverflow = document.body.style.overflow;
+      previousBodyTouchAction = document.body.style.touchAction;
+      document.body.style.overflow = "hidden";
+      document.body.style.touchAction = "none";
+    };
+
+    const unlockPageScroll = () => {
+      document.body.style.overflow = previousBodyOverflow;
+      document.body.style.touchAction = previousBodyTouchAction;
     };
 
     const syncState = () => {
@@ -228,6 +246,7 @@
     const cleanup = () => {
       if (!drag) return;
       clearPressTimer();
+      unlockPageScroll();
       drag.row.classList.remove("is-dragging");
       drag.row.style.position = "";
       drag.row.style.left = "";
@@ -238,6 +257,7 @@
       if (drag.placeholder.isConnected) {
         drag.placeholder.replaceWith(drag.row);
       }
+      drag.row.releasePointerCapture?.(drag.pointerId);
       drag = null;
       syncState();
       update();
@@ -283,6 +303,7 @@
         pointerType: event.pointerType || "mouse",
         clickTarget: event.target.closest(".es-name-cell, .es-handle-cell, .es-order-cell"),
       };
+      skill.row.setPointerCapture?.(event.pointerId);
 
       if (!drag.longPressReady) {
         drag.pressTimer = setTimeout(() => {
@@ -297,6 +318,7 @@
       if (!drag || drag.active) return;
       const rect = drag.row.getBoundingClientRect();
       drag.active = true;
+      lockPageScroll();
       drag.row.after(drag.placeholder);
       drag.row.classList.add("is-dragging");
       drag.row.style.position = "fixed";
@@ -315,6 +337,7 @@
         if (drag.pointerType === "touch" && !drag.longPressReady) {
           if (movedX >= DRAG_THRESHOLD || movedY >= DRAG_THRESHOLD) {
             clearPressTimer();
+            drag.row.releasePointerCapture?.(drag.pointerId);
             drag = null;
           }
           return;
@@ -336,6 +359,7 @@
         const skill = drag.skill;
         const clickTarget = drag.clickTarget;
         clearPressTimer();
+        drag.row.releasePointerCapture?.(drag.pointerId);
         drag = null;
         if (clickTarget?.classList.contains("es-name-cell")) {
           openDetail(skill);
