@@ -2,6 +2,7 @@
   const ROOT_ID = "__es_tactics_drag_ui";
   const STYLE_ID = "__es_tactics_drag_style";
   const DRAG_THRESHOLD = 6;
+  const LONG_PRESS_MS = 320;
 
   const getSkillId = (row) => {
     const checkbox = row.querySelector('input[type="checkbox"]');
@@ -24,6 +25,7 @@
     style.textContent = `
 #${ROOT_ID}{
   margin-top:8px;
+  -webkit-touch-callout:none;
 }
 #${ROOT_ID} .es-group{
   margin-bottom:10px;
@@ -66,6 +68,8 @@
 }
 #${ROOT_ID} .es-row{
   touch-action:none;
+  -webkit-user-select:none;
+  user-select:none;
 }
 #${ROOT_ID} .es-row.is-dragging{
   opacity:.95;
@@ -202,6 +206,12 @@
     const lists = Array.from(root.querySelectorAll(".es-skill-list"));
     let drag = null;
 
+    const clearPressTimer = () => {
+      if (!drag?.pressTimer) return;
+      clearTimeout(drag.pressTimer);
+      drag.pressTimer = null;
+    };
+
     const syncState = () => {
       state.skills = lists.flatMap((list) =>
         Array.from(list.querySelectorAll(".es-row"))
@@ -217,6 +227,7 @@
 
     const cleanup = () => {
       if (!drag) return;
+      clearPressTimer();
       drag.row.classList.remove("is-dragging");
       drag.row.style.position = "";
       drag.row.style.left = "";
@@ -268,8 +279,18 @@
         offsetY: event.clientY - rect.top,
         placeholder,
         active: false,
+        longPressReady: event.pointerType !== "touch",
+        pointerType: event.pointerType || "mouse",
         clickTarget: event.target.closest(".es-name-cell, .es-handle-cell, .es-order-cell"),
       };
+
+      if (!drag.longPressReady) {
+        drag.pressTimer = setTimeout(() => {
+          if (!drag || drag.skill !== skill || drag.active) return;
+          drag.longPressReady = true;
+          activateDrag();
+        }, LONG_PRESS_MS);
+      }
     };
 
     const activateDrag = () => {
@@ -290,8 +311,19 @@
       if (!drag) return;
       const movedX = Math.abs(event.clientX - drag.startX);
       const movedY = Math.abs(event.clientY - drag.startY);
-      if (!drag.active && movedX < DRAG_THRESHOLD && movedY < DRAG_THRESHOLD) return;
-      if (!drag.active) activateDrag();
+      if (!drag.active) {
+        if (drag.pointerType === "touch" && !drag.longPressReady) {
+          if (movedX >= DRAG_THRESHOLD || movedY >= DRAG_THRESHOLD) {
+            clearPressTimer();
+            drag = null;
+          }
+          return;
+        }
+        if (movedX < DRAG_THRESHOLD && movedY < DRAG_THRESHOLD) return;
+        clearPressTimer();
+        activateDrag();
+      }
+      event.preventDefault();
       drag.row.style.left = `${event.clientX - drag.offsetX}px`;
       drag.row.style.top = `${event.clientY - drag.offsetY}px`;
       const list = findListFromPoint(event.clientX, event.clientY);
@@ -303,6 +335,7 @@
       if (!drag.active) {
         const skill = drag.skill;
         const clickTarget = drag.clickTarget;
+        clearPressTimer();
         drag = null;
         if (clickTarget?.classList.contains("es-name-cell")) {
           openDetail(skill);
@@ -320,6 +353,12 @@
       if (!skill) return;
       event.preventDefault();
       startDrag(event, skill);
+    });
+
+    root.addEventListener("contextmenu", (event) => {
+      if (event.target.closest(".es-row")) {
+        event.preventDefault();
+      }
     });
 
     document.addEventListener("pointermove", handlePointerMove);
