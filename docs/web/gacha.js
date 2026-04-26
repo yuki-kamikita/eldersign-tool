@@ -30,6 +30,9 @@
   const chart = document.getElementById("gacha-chart");
   const chartNote = document.getElementById("gacha-chart-note");
   const shareTwitter = document.getElementById("share-twitter");
+  const drawCountLabel = document.getElementById("draw-count-label");
+  const drawPresetButtons = document.getElementById("draw-preset-buttons");
+  const ratePresetButtons = document.getElementById("rate-preset-buttons");
   const STORAGE_KEY = "eldersign_gacha_form_v1";
   const LOG_SQRT_TWO_PI = 0.9189385332046727;
   let lastResult = null;
@@ -292,6 +295,19 @@
     return loaded;
   }
 
+  // 選択中の排出率プリセットを合算して入力欄へ反映する。
+  function applyRatePresets() {
+    if (!ratePresetButtons || !inputs.targetRate) return;
+    const total = [...ratePresetButtons.querySelectorAll(".chip-button.is-active")].reduce((sum, button) => {
+      const rate = Number(button.dataset.rate);
+      const slots = Number(button.dataset.slots);
+      if (!Number.isFinite(rate) || !Number.isFinite(slots)) return sum;
+      return sum + rate * slots;
+    }, 0);
+    inputs.targetRate.value = String(Number(total.toFixed(6)));
+    calculate();
+  }
+
   // 直近の計算結果をTwitter投稿文に変換する。
   function buildShareText(result) {
     if (!result) return "ガチャ結果\n#エルダーサイン #ガチャ";
@@ -339,8 +355,6 @@
       zero,
     };
 
-    inputs.hitCount.max = String(drawCount);
-
     renderResultPairs(
       resultList,
       [
@@ -387,6 +401,53 @@
     if (!input) return;
     input.addEventListener("input", calculate);
   });
+
+  if (inputs.targetRate && ratePresetButtons) {
+    inputs.targetRate.addEventListener("input", () => {
+      ratePresetButtons.querySelectorAll(".chip-button.is-active").forEach((button) => {
+        button.classList.remove("is-active");
+      });
+    });
+  }
+
+  if (drawPresetButtons) {
+    drawPresetButtons.addEventListener("click", (event) => {
+      const button = event.target.closest(".chip-button");
+      if (!button || !inputs.drawCount) return;
+      inputs.drawCount.value = button.dataset.drawCount || "";
+      calculate();
+    });
+  }
+
+  if (ratePresetButtons) {
+    ratePresetButtons.addEventListener("click", (event) => {
+      const button = event.target.closest(".chip-button");
+      if (!button) return;
+      const group = button.closest(".rate-count-group");
+      if (group) {
+        group.querySelectorAll(".chip-button.is-active").forEach((activeButton) => {
+          activeButton.classList.remove("is-active");
+        });
+      }
+      button.classList.add("is-active");
+      applyRatePresets();
+    });
+  }
+
+  if (drawCountLabel) {
+    drawCountLabel.addEventListener("click", (event) => {
+      if (event.target.closest("input")) return;
+      drawCountLabel.classList.toggle("is-open");
+    });
+    document.addEventListener("click", (event) => {
+      if (drawCountLabel.contains(event.target)) return;
+      drawCountLabel.classList.remove("is-open");
+    });
+    drawCountLabel.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return;
+      drawCountLabel.classList.remove("is-open");
+    });
+  }
 
   if (resultSummary) {
     resultSummary.addEventListener("click", toggleResultDetailOpen);

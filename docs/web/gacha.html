@@ -19,6 +19,109 @@
       gap: 12px;
     }
 
+    .field-stack {
+      grid-column: 2;
+      display: grid;
+      gap: 8px;
+    }
+
+    .field-stack input {
+      grid-column: auto;
+      width: min(100%, 9em);
+    }
+
+    .rate-count-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .rate-count-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .rate-count-value {
+      color: var(--md-sys-on-surface-variant);
+      font-size: 0.9rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .rate-count-symbol {
+      color: var(--md-sys-on-surface-variant);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .rate-count-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .rate-count-group .chip-button {
+      min-width: 34px;
+      padding: 6px 10px;
+    }
+
+    .help-label {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      width: fit-content;
+      cursor: help;
+    }
+
+    .help-mark {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      border: 1px solid var(--md-sys-outline-variant);
+      color: var(--md-sys-on-surface-variant);
+      font-size: 0.75rem;
+      line-height: 1;
+    }
+
+    .label-note {
+      position: absolute;
+      left: 0;
+      top: calc(100% + 8px);
+      z-index: 30;
+      width: min(280px, calc(100vw - 48px));
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--md-sys-outline-variant);
+      background: var(--md-sys-surface);
+      color: var(--md-sys-on-surface);
+      box-shadow: 0 10px 25px var(--md-sys-shadow);
+      font-size: 0.85rem;
+      font-weight: 500;
+      line-height: 1.5;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-4px);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+
+    .help-label:hover .label-note,
+    .help-label.is-open .label-note,
+    .help-label:focus-within .label-note {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .help-mark:focus-visible {
+      outline: 2px solid var(--md-sys-primary);
+      outline-offset: 2px;
+    }
+
     .result-summary {
       cursor: pointer;
       user-select: none;
@@ -180,20 +283,62 @@
           <h3>ガチャ結果</h3>
           <div class="form-grid">
             <div class="input-row">
-              <label for="draw-count">引いた回数</label>
-              <input id="draw-count" type="number" max="10000" step="1" value="100" />
+              <label id="draw-count-label" class="help-label" for="draw-count">
+                引いた回数
+                <span class="help-mark" tabindex="0" aria-label="引いた回数の換算条件">?</span>
+                <span class="label-note" role="tooltip">1万円で11000コインを購入し、1回300コインで引く前提で換算しています。</span>
+              </label>
+              <div class="field-stack">
+                <input id="draw-count" type="number" step="1" value="100" />
+                <div id="draw-preset-buttons" class="chip-group" aria-label="引いた回数プリセット">
+                  <button type="button" class="chip-button" data-draw-count="110">3万</button>
+                  <button type="button" class="chip-button" data-draw-count="366">10万</button>
+                </div>
+              </div>
             </div>
             <div class="input-row">
               <label for="choice-count">選択肢の数</label>
-              <input id="choice-count" type="number" max="1000" step="1" value="3" />
+              <input id="choice-count" type="number" step="1" value="3" />
             </div>
             <div class="input-row">
               <label for="target-rate">狙いの排出率(%)</label>
-              <input id="target-rate" type="number" max="100" step="0.001" value="1" />
+              <div class="field-stack">
+                <input id="target-rate" type="number" step="0.001" value="1" />
+                <div id="rate-preset-buttons" class="rate-count-list" aria-label="排出率プリセット">
+                  <div class="rate-count-row">
+                    <div class="rate-count-value">1.109%</div>
+                    <div class="rate-count-symbol">×</div>
+                    <div class="rate-count-group" aria-label="1.109%を足す数">
+                      <button type="button" class="chip-button chip-rarity-gold is-active" data-rate="1.109"
+                        data-slots="0">0</button>
+                      <button type="button" class="chip-button chip-rarity-gold" data-rate="1.109"
+                        data-slots="1">1</button>
+                      <button type="button" class="chip-button chip-rarity-gold" data-rate="1.109"
+                        data-slots="2">2</button>
+                    </div>
+                  </div>
+                  <div class="rate-count-row">
+                    <div class="rate-count-value">0.085%</div>
+                    <div class="rate-count-symbol">×</div>
+                    <div class="rate-count-group" aria-label="0.085%を足す数">
+                      <button type="button" class="chip-button chip-rarity-platinum is-active" data-rate="0.085"
+                        data-slots="0">0</button>
+                      <button type="button" class="chip-button chip-rarity-platinum" data-rate="0.085"
+                        data-slots="1">1</button>
+                      <button type="button" class="chip-button chip-rarity-platinum" data-rate="0.085"
+                        data-slots="2">2</button>
+                      <button type="button" class="chip-button chip-rarity-platinum" data-rate="0.085"
+                        data-slots="3">3</button>
+                      <button type="button" class="chip-button chip-rarity-platinum" data-rate="0.085"
+                        data-slots="4">4</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
             <div class="input-row">
               <label for="hit-count">当たりの数</label>
-              <input id="hit-count" type="number" max="10000" step="1" value="0" />
+              <input id="hit-count" type="number" step="1" value="0" />
             </div>
           </div>
         </article>
@@ -239,7 +384,7 @@
   </main>
 
   <script src="./tool-common.js?v2" defer></script>
-  <script src="./gacha.js?v10" defer></script>
+  <script src="./gacha.js?v18" defer></script>
   <script src="../footer.js" defer></script>
 </body>
 
