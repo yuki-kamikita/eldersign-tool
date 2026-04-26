@@ -247,6 +247,26 @@
     return window.__ES_SKILL_ORDER_LOADING;
   };
 
+  const cleanupBattleHtml = (html) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+
+    doc.querySelectorAll("script").forEach((script) => script.remove());
+    doc.querySelectorAll("link[rel]").forEach((link) => {
+      if (link.getAttribute("rel").toLowerCase().includes("icon")) {
+        link.remove();
+      }
+    });
+    doc.querySelectorAll("header.page").forEach((header) => header.remove());
+    doc.querySelectorAll("style").forEach((style) => {
+      if (style.textContent.includes("header.page")) {
+        style.remove();
+      }
+    });
+
+    return "<!DOCTYPE html>\n" + doc.documentElement.outerHTML;
+  };
+
   const getRowsFromInfo = (info) => {
     return info.order
       .map((name) => info.map.get(name))
@@ -746,7 +766,7 @@
         try {
           const response = await fetch(match.url, { credentials: "include" });
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
-          const html = await response.text();
+          const html = cleanupBattleHtml(await response.text());
           htmlByMatchKey.set(match.key, html);
           const parsed = parseBattle(html);
           if (!parsed) {
