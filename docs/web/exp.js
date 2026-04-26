@@ -141,6 +141,32 @@
     });
   }
 
+  function applyParams(params) {
+    if (!params) return;
+
+    const rarityMap = {
+      bronze: "1",
+      silver: "2",
+      gold: "4",
+      platinum: "8",
+      "銅": "1",
+      "銀": "2",
+      "金": "4",
+      "白金": "8",
+    };
+    const rarityParam = params.get("rarity");
+    const rarityValue = rarityMap[rarityParam] || rarityParam;
+    if (rarityValue && Object.prototype.hasOwnProperty.call(RARITY_CONFIG, rarityValue)) {
+      inputs.rarity.value = rarityValue;
+    }
+
+    const levelParam = params.get("level") ?? params.get("lv");
+    const level = Number(levelParam);
+    if (Number.isFinite(level)) {
+      inputs.level.value = String(Math.max(0, Math.floor(level)));
+    }
+  }
+
   function calculate() {
     const selectedRarity = readNumber(inputs.rarity, 1);
     const rarityConfig = RARITY_CONFIG[selectedRarity] || RARITY_CONFIG[1];
@@ -206,6 +232,7 @@
   }
 
   loadFormState();
+  applyParams(new URLSearchParams(window.location.search));
   setChipValue(inputs.family, inputs.family.value);
   setChipValue(inputs.rarity, inputs.rarity.value);
   bindChipGroups(() => {

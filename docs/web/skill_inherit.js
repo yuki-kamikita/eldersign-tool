@@ -371,6 +371,60 @@
         });
       }
 
+      // 潜在100%目安のレベルから経験値計算へ遷移する。
+      function bindAppearanceTableLinks() {
+        const table = document.querySelector('table.note-table[data-table="appearance"]');
+        if (!table) return;
+        const rarityValueMap = {
+          銅: "1",
+          銀: "2",
+          金: "4",
+          白金: "8",
+        };
+        const getTarget = (cell) => {
+          if (!cell || cell.cellIndex <= 0) return null;
+          const row = cell.closest("tr");
+          const labelCell = row ? row.cells[0] : null;
+          const rarity = labelCell ? rarityValueMap[labelCell.textContent.trim()] : null;
+          const level = parseInt(cell.textContent.trim(), 10);
+          if (!rarity || !Number.isFinite(level)) return null;
+          return { rarity, level };
+        };
+        const moveToExp = (cell) => {
+          const target = getTarget(cell);
+          if (!target) return;
+          const params = new URLSearchParams({
+            rarity: target.rarity,
+            level: String(target.level),
+          });
+          window.location.href = `./exp.html?${params.toString()}`;
+        };
+        const closestCell = (target) => {
+          if (!(target instanceof Element)) return null;
+          return target.closest("td");
+        };
+
+        table.querySelectorAll("tbody tr").forEach((row) => {
+          Array.from(row.cells).forEach((cell) => {
+            if (!getTarget(cell)) return;
+            cell.classList.add("is-link");
+            cell.tabIndex = 0;
+            cell.setAttribute("role", "link");
+            cell.title = "合成経験値計算へ";
+          });
+        });
+        table.addEventListener("click", (event) => {
+          moveToExp(closestCell(event.target));
+        });
+        table.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter" && event.key !== " ") return;
+          const cell = closestCell(event.target);
+          if (!getTarget(cell)) return;
+          event.preventDefault();
+          moveToExp(cell);
+        });
+      }
+
       // 継承率・発現率・早見表ハイライトをまとめて更新する。
       function updateResult() {
         const isSameFamily = inputs.familyMatch.value === "same";
@@ -505,6 +559,7 @@
       setChipValue(inputs.rarity, inputs.rarity.value);
       setChipValue(inputs.maxLv, inputs.maxLv.value);
       bindResultAccordion(outputs.resultSummary, outputs.resultDetail);
+      bindAppearanceTableLinks();
       applyParams(new URLSearchParams(window.location.search));
       updateResult();
     })();
