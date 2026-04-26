@@ -34,7 +34,7 @@
   const LOG_SQRT_TWO_PI = 0.9189385332046727;
   let lastResult = null;
 
-  // 数値入力を指定範囲に丸めて返す。
+  // 入力欄の表示値を変えず、計算用の数値だけを指定範囲に丸めて返す。
   function readClampedNumber(input, fallback, min, max, integer = false) {
     const value = Number(input && input.value);
     const parsed = Number.isFinite(value) ? value : fallback;
@@ -339,10 +339,7 @@
       zero,
     };
 
-    inputs.drawCount.value = String(drawCount);
-    inputs.choiceCount.value = String(choiceCount);
     inputs.hitCount.max = String(drawCount);
-    inputs.hitCount.value = String(hitCount);
 
     renderResultPairs(
       resultList,
