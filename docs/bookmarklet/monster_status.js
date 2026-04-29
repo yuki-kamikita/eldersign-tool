@@ -681,7 +681,7 @@
     const currentStatusTailLines = [];
     lines.push("評価値: " + evalValue.toFixed(1));
     if (bazaarPriceAny != null && deliveryPointDisplay > 0) {
-      const unitPrice = bazaarPriceAny / deliveryPoint;
+      const unitPrice = bazaarPriceAny / deliveryPointDisplay;
       const unitPriceRounded = Math.round(unitPrice);
       lines.push(`納品pt: ${deliveryPointDisplay} (${unitPriceRounded}any/pt)`);
     } else {
