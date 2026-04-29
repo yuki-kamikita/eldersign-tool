@@ -47,7 +47,7 @@
   font-size:12px;
   line-height:1.35;
   display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
+  grid-template-columns:repeat(2,minmax(0,1fr));
   gap:2px 8px;
   clear:both;
 }
@@ -235,6 +235,19 @@
         );
         if (typeCompare !== 0) return typeCompare;
 
+        const aUnitPriceRaw = a.li.dataset.esUnitPriceAnyPerPt;
+        const bUnitPriceRaw = b.li.dataset.esUnitPriceAnyPerPt;
+        const aUnitPrice = Number(aUnitPriceRaw);
+        const bUnitPrice = Number(bUnitPriceRaw);
+        const aHasUnitPrice = aUnitPriceRaw !== "" && Number.isFinite(aUnitPrice);
+        const bHasUnitPrice = bUnitPriceRaw !== "" && Number.isFinite(bUnitPrice);
+        if (aHasUnitPrice && bHasUnitPrice) {
+          const unitPriceCompare = aUnitPrice - bUnitPrice;
+          if (unitPriceCompare !== 0) return unitPriceCompare;
+        } else if (aHasUnitPrice !== bHasUnitPrice) {
+          return aHasUnitPrice ? -1 : 1;
+        }
+
         const kindCompare =
           Number(a.li.dataset.esMonsterKindOrder || Number.MAX_SAFE_INTEGER) -
           Number(b.li.dataset.esMonsterKindOrder || Number.MAX_SAFE_INTEGER);
@@ -267,6 +280,27 @@
       }
     }
     return null;
+  };
+
+  const getSalePriceAny = (li) => {
+    const priceNode = li.querySelector("p.price");
+    if (priceNode) {
+      const match = priceNode.textContent.match(/([\d,]+)\s*Any/i);
+      if (match) return parseInt(match[1].replace(/,/g, ""), 10);
+    }
+
+    const detailUrl = findDetailUrl(li);
+    if (!detailUrl) return null;
+
+    try {
+      const url = new URL(detailUrl, window.location.href);
+      const price = url.searchParams.get("pz");
+      if (!price) return null;
+      const value = parseInt(price.replace(/,/g, ""), 10);
+      return Number.isFinite(value) ? value : null;
+    } catch (_) {
+      return null;
+    }
   };
 
   const getLevelInfo = (doc) => {
@@ -382,6 +416,11 @@
     return `${label}:${info.base}+${info.bonus}${suffix}`;
   };
 
+  const calcUnitPriceAnyPerPt = (salePriceAny, deliveryPointDisplay) => {
+    if (salePriceAny == null || deliveryPointDisplay <= 0) return null;
+    return Math.round(salePriceAny / deliveryPointDisplay);
+  };
+
   const getLineContainer = (li) => li.querySelector("a") || li;
 
   const getOrCreateLine = (li, key) => {
@@ -413,7 +452,7 @@
     getLineContainer(li).querySelector(`.${LINE_CLASS}[data-stat-key="error"]`)?.remove();
   };
 
-  const renderStats = (li, statInfo, deliveryPoint, experience) => {
+  const renderStats = (li, statInfo, deliveryPointDisplay, unitPriceAnyPerPt, experience) => {
     clearLoading(li);
     clearError(li);
     const line = getOrCreateLine(li, "stats");
@@ -436,7 +475,11 @@
           cell.classList.add("is-over-threshold");
         }
       } else if (label === "納品pt") {
-        cell.textContent = `納品pt:${deliveryPoint}`;
+        if (unitPriceAnyPerPt != null) {
+          cell.textContent = `納品pt:${deliveryPointDisplay} (${unitPriceAnyPerPt}any/pt)`;
+        } else {
+          cell.textContent = `納品pt:${deliveryPointDisplay}`;
+        }
       } else {
         cell.textContent = `経験値:${experience}`;
       }
@@ -477,14 +520,15 @@
     const { statInfo, sumSq } = collectStats(rows, levelInfo.level, g, sqrtG);
     const rarityCoeff = GROWTH_COEFF_BY_RARITY[rarity] ?? 1.0;
     const evalValue = calcEval(sumSq);
-    const deliveryPoint = Math.floor(evalValue * rarityCoeff);
+    const deliveryPoint = evalValue * rarityCoeff;
+    const deliveryPointDisplay = Math.floor(deliveryPoint);
     const grade = getGrade(doc);
     if (!Number.isFinite(grade)) throw new Error("グレード情報なし");
     const expRarityFactor = EXP_COEFF_BY_RARITY[rarity] ?? 1;
     const baseExp = expRarityFactor * grade * ((levelInfo.level + 4) / 5) * 16;
     const experience = Math.floor(baseExp * 1.125);
 
-    return { statInfo, deliveryPoint, experience, evalValue };
+    return { statInfo, deliveryPoint, deliveryPointDisplay, experience, evalValue };
   };
 
   const main = async () => {
@@ -533,15 +577,20 @@
 
       try {
         const doc = await fetchAndParse(detailUrl);
-        const { statInfo, deliveryPoint, experience, evalValue } = buildStatusData(doc);
-        renderStats(li, statInfo, deliveryPoint, experience);
+        const salePriceAny = getSalePriceAny(li);
+        const { statInfo, deliveryPointDisplay, experience, evalValue } = buildStatusData(doc);
+        const unitPriceAnyPerPt = calcUnitPriceAnyPerPt(salePriceAny, deliveryPointDisplay);
+        renderStats(li, statInfo, deliveryPointDisplay, unitPriceAnyPerPt, experience);
         li.dataset.esFetched = "1";
         li.dataset.esEvalValue = String(evalValue);
+        li.dataset.esUnitPriceAnyPerPt =
+          unitPriceAnyPerPt == null ? "" : String(unitPriceAnyPerPt);
         successCount += 1;
       } catch (error) {
         errorCount += 1;
         li.dataset.esFetched = "0";
         li.dataset.esEvalValue = "";
+        li.dataset.esUnitPriceAnyPerPt = "";
         renderError(li, `取得失敗 (${error.message})`);
       }
 
