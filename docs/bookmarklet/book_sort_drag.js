@@ -80,7 +80,7 @@
 #${ROOT_ID}{
   margin:8px 0;
   -webkit-touch-callout:none;
-  touch-action:none;
+  touch-action:pan-y;
 }
 #${ROOT_ID} .es-note{
   text-align:center;
@@ -96,7 +96,7 @@
   display:flex;
   align-items:stretch;
   gap:6px;
-  touch-action:none;
+  touch-action:pan-y;
   -webkit-user-select:none;
   user-select:none;
 }
@@ -140,7 +140,9 @@
   background:rgba(0,0,0,.55);
   text-align:center;
   font-weight:bold;
-  pointer-events:none;
+  pointer-events:auto;
+  touch-action:none;
+  cursor:grab;
 }
 #${ROOT_ID} .es-actions{
   flex:0 0 78px;
@@ -363,8 +365,8 @@
     note.className = "es-note";
     note.textContent =
       state.mode === "sort"
-        ? `移動したい${state.kind.itemName}を移動先へドラッグしてください。`
-        : `${state.kind.itemName}を移動先へドラッグすると並び替えを実行します。`;
+        ? `移動したい${state.kind.itemName}を長押しして、移動先へドラッグしてください。`
+        : `${state.kind.itemName}を長押しして移動先へドラッグすると並び替えを実行します。`;
     const block = document.createElement("nav");
     block.className = "block";
     const list = document.createElement("ul");
@@ -577,6 +579,10 @@
       applyMove(buildMoveHref(state, itemId, officialIndex));
     };
 
+    const handleTouchMove = (event) => {
+      if (drag?.active) event.preventDefault();
+    };
+
     const moveByButton = (row, direction) => {
       if (state.busy) return;
       const currentRows = Array.from(list.querySelectorAll(".es-row"));
@@ -601,7 +607,9 @@
       if (event.button !== 0) return;
       const row = event.target.closest(".es-row");
       if (!row || row.classList.contains("is-placeholder")) return;
-      event.preventDefault();
+      if (event.pointerType !== "touch" && event.pointerType !== "pen") {
+        event.preventDefault();
+      }
       startDrag(event, row);
     });
     root.addEventListener("contextmenu", (event) => {
@@ -619,6 +627,7 @@
     document.addEventListener("pointermove", handlePointerMove);
     document.addEventListener("pointerup", handlePointerEnd);
     document.addEventListener("pointercancel", handlePointerEnd);
+    document.addEventListener("touchmove", handleTouchMove, { passive: false });
     updateButtons();
   };
 
@@ -644,7 +653,7 @@
 
     const message = document.querySelector("article.checktxt p");
     if (message && state.mode === "sort") {
-      message.textContent = `移動したい${state.kind.itemName}を移動先へドラッグしてください`;
+      message.textContent = `移動したい${state.kind.itemName}を長押しして、移動先へドラッグしてください`;
     }
   } catch (error) {
     alert("エラー: " + error.message);
