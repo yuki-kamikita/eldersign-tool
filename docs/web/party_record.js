@@ -617,6 +617,7 @@ import {
         targetCard: null,
         targetPartyId: null,
         targetIndex: null,
+        pointerTarget: null,
         startX: 0,
         startY: 0,
       };
@@ -643,6 +644,7 @@ import {
         longPressSlotDrag.targetCard = null;
         longPressSlotDrag.targetPartyId = null;
         longPressSlotDrag.targetIndex = null;
+        longPressSlotDrag.pointerTarget = null;
         if (suppressClick) {
           suppressPreviewClick = true;
           setTimeout(() => {
@@ -677,11 +679,17 @@ import {
         longPressSlotDrag.sourceCard = card;
         longPressSlotDrag.sourcePartyId = partyId;
         longPressSlotDrag.sourceIndex = index;
+        longPressSlotDrag.pointerTarget = event.currentTarget;
         longPressSlotDrag.startX = event.clientX;
         longPressSlotDrag.startY = event.clientY;
         longPressSlotDrag.timer = setTimeout(() => {
           longPressSlotDrag.timer = null;
           longPressSlotDrag.active = true;
+          try {
+            longPressSlotDrag.pointerTarget.setPointerCapture(event.pointerId);
+          } catch (error) {
+            // ignore pointer capture failures
+          }
           dragState.type = "slot";
           dragState.partyId = partyId;
           dragState.slotIndex = index;
@@ -695,7 +703,7 @@ import {
         if (event.pointerId !== longPressSlotDrag.pointerId) return;
         const movedX = Math.abs(event.clientX - longPressSlotDrag.startX);
         const movedY = Math.abs(event.clientY - longPressSlotDrag.startY);
-        if (!longPressSlotDrag.active && (movedX > 12 || movedY > 12)) {
+        if (!longPressSlotDrag.active && movedY > 24 && movedY > movedX * 1.5) {
           resetLongPressSlotDrag();
           return;
         }
@@ -711,9 +719,15 @@ import {
         const fromIndex = longPressSlotDrag.sourceIndex;
         const toPartyId = longPressSlotDrag.targetPartyId;
         const toIndex = longPressSlotDrag.targetIndex;
+        const pointerTarget = longPressSlotDrag.pointerTarget;
         if (wasActive && Number.isFinite(toPartyId) && Number.isFinite(toIndex)) {
           event.preventDefault();
           swapSlots(fromPartyId, fromIndex, toPartyId, toIndex);
+        }
+        try {
+          pointerTarget?.releasePointerCapture(event.pointerId);
+        } catch (error) {
+          // ignore pointer capture failures
         }
         resetLongPressSlotDrag({ suppressClick: wasActive });
         if (wasActive) onDragEnd();
