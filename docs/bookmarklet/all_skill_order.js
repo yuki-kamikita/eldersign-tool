@@ -247,6 +247,38 @@
     return window.__ES_SKILL_ORDER_LOADING;
   };
 
+  const normalizeBattlePartyTables = (doc) => {
+    doc.querySelectorAll("div.ptytable").forEach((source) => {
+      const cells = Array.from(source.children).filter((el) => el.matches("div.ptycell"));
+      if (cells.length < 2) return;
+
+      const table = doc.createElement("table");
+      table.className = "party";
+      const tbody = doc.createElement("tbody");
+      const row = doc.createElement("tr");
+
+      cells.forEach((cell) => {
+        const td = doc.createElement("td");
+        const monsters = Array.from(cell.children).filter((el) => el.tagName === "DIV");
+        const entries = monsters.length ? monsters : [cell];
+
+        entries.forEach((entry) => {
+          const p = doc.createElement("p");
+          Array.from(entry.childNodes).forEach((node) => {
+            p.appendChild(node.cloneNode(true));
+          });
+          td.appendChild(p);
+        });
+
+        row.appendChild(td);
+      });
+
+      tbody.appendChild(row);
+      table.appendChild(tbody);
+      source.replaceWith(table);
+    });
+  };
+
   const cleanupBattleHtml = (html) => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, "text/html");
@@ -263,6 +295,7 @@
         style.remove();
       }
     });
+    normalizeBattlePartyTables(doc);
 
     return "<!DOCTYPE html>\n" + doc.documentElement.outerHTML;
   };

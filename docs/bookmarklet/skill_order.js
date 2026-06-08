@@ -34,11 +34,39 @@
     return lines;
   }
 
-  function parsePartyCell(td) {
+  function getPartyCells(root) {
+    const table = root.querySelector("table.party");
+    if (table) {
+      const cells = table.querySelectorAll("tbody tr td");
+      if (cells.length >= 2) return Array.from(cells);
+    }
+
+    const ptytable = root.querySelector("div.ptytable");
+    if (ptytable) {
+      const cells = Array.from(ptytable.children).filter((el) =>
+        el.matches("div.ptycell")
+      );
+      if (cells.length >= 2) return Array.from(cells);
+    }
+
+    return [];
+  }
+
+  function getMonsterElementsFromPartyCell(cell) {
+    const children = Array.from(cell.children);
+    const ps = children.filter((el) => el.tagName === "P");
+    if (ps.length) return ps;
+
+    const divs = children.filter((el) => el.tagName === "DIV");
+    if (divs.length) return divs;
+
+    return [cell];
+  }
+
+  function parsePartyCell(cell) {
     const monsters = [];
-    const ps = td.querySelectorAll("p");
-    ps.forEach((p) => {
-      const lines = getLinesFromElement(p);
+    getMonsterElementsFromPartyCell(cell).forEach((el) => {
+      const lines = getLinesFromElement(el);
       if (!lines.length) return;
       const nameLine = lines[0];
       const name = parseNameLine(nameLine);
@@ -456,9 +484,8 @@
 
   function collectPresence(td) {
     const names = new Set();
-    const ps = td.querySelectorAll("p");
-    ps.forEach((p) => {
-      const lines = getLinesFromElement(p);
+    getMonsterElementsFromPartyCell(td).forEach((el) => {
+      const lines = getLinesFromElement(el);
       if (!lines.length) return;
       const name = parseNameLine(lines[0]);
       if (name) names.add(name);
@@ -541,12 +568,11 @@
     }
 
     const firstTurn = turnSections[0];
-    const partyTable = firstTurn.querySelector("table.party");
-    if (!partyTable) {
+    const partyCells = getPartyCells(firstTurn);
+    if (!partyCells.length) {
       throw new Error("初期陣営情報が見つかりません");
     }
 
-    const partyCells = partyTable.querySelectorAll("tbody tr td");
     if (partyCells.length < 2) {
       throw new Error("陣営情報の取得に失敗しました");
     }
@@ -603,13 +629,10 @@
       const turn = parseTurnNumber(section);
       if (turn == null) return;
 
-      const table = section.querySelector("table.party");
-      if (table) {
-        const cells = table.querySelectorAll("tbody tr td");
-        if (cells.length >= 2) {
-          presentLeftByTurn[turn] = collectPresence(cells[0]);
-          presentRightByTurn[turn] = collectPresence(cells[1]);
-        }
+      const cells = getPartyCells(section);
+      if (cells.length >= 2) {
+        presentLeftByTurn[turn] = collectPresence(cells[0]);
+        presentRightByTurn[turn] = collectPresence(cells[1]);
       }
 
       const rounds = section.querySelectorAll("p.round");
