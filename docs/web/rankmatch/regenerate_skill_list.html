@@ -1,0 +1,792 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>skill_list.csv 再生成</title>
+    <link rel="stylesheet" href="../../theme.css" />
+    <style>
+      main {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 28px 16px 48px;
+      }
+
+      .tool {
+        display: grid;
+        gap: 16px;
+        margin-top: 20px;
+      }
+
+      .panel {
+        border: 1px solid var(--md-sys-outline-variant, #ddd);
+        border-radius: 8px;
+        padding: 16px;
+        background: var(--md-sys-surface, #fff);
+        display: grid;
+        gap: 12px;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+      }
+
+      label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      input[type="number"] {
+        width: 88px;
+      }
+
+      button,
+      input::file-selector-button {
+        border: 1px solid var(--md-sys-outline-variant, #bbb);
+        border-radius: 6px;
+        padding: 7px 12px;
+        background: var(--md-sys-surface-container, #f4f4f4);
+        color: var(--md-sys-on-surface, #222);
+        cursor: pointer;
+      }
+
+      button.primary {
+        background: var(--md-sys-primary, #3057d5);
+        border-color: var(--md-sys-primary, #3057d5);
+        color: var(--md-sys-on-primary, #fff);
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+      }
+
+      .status {
+        white-space: pre-wrap;
+        border-radius: 8px;
+        padding: 12px;
+        background: var(--md-sys-surface-variant, #f1f1f1);
+        min-height: 96px;
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-size: 13px;
+      }
+
+      .result-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .result-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        border-top: 1px solid var(--md-sys-outline-variant, #ddd);
+        padding-top: 8px;
+      }
+
+      .result-row a {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 6px;
+        padding: 7px 12px;
+        background: var(--md-sys-primary, #3057d5);
+        color: var(--md-sys-on-primary, #fff);
+        text-decoration: none;
+      }
+    </style>
+    <script>
+      window.__ES_SKILL_ORDER_NO_AUTO_RUN = true;
+    </script>
+    <script src="../../bookmarklet/skill_order.js"></script>
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="subtitle">Rankmatch Skill List</p>
+        <h1>skill_list.csv 再生成</h1>
+        <p>
+          保存済みの manifest.json と matches/*.html から、all_skill_order.js と同じ形式の
+          skill_list.csv を作り直します。
+        </p>
+      </header>
+
+      <section class="tool">
+        <div class="panel">
+          <div class="controls">
+            <label>期 <input id="phaseInput" type="number" min="1" step="1" value="25" /></label>
+            <label><input class="groupInput" type="checkbox" value="S" checked /> S</label>
+            <label><input class="groupInput" type="checkbox" value="A1" checked /> A1</label>
+            <label><input class="groupInput" type="checkbox" value="A2" checked /> A2</label>
+          </div>
+          <div class="controls">
+            <input id="directoryInput" type="file" webkitdirectory multiple />
+            <button id="runFilesButton" class="primary" type="button" disabled>
+              選択ファイルから生成
+            </button>
+            <button id="runFetchButton" type="button">data フォルダから生成</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>出力</h2>
+          <div id="resultList" class="result-list"></div>
+        </div>
+
+        <div id="status" class="status">待機中</div>
+      </section>
+    </main>
+
+    <script>
+      (() => {
+        const GROUP_ORDER = ["S", "A1", "A2"];
+        const MAX_SKILL_COUNT = 5;
+        const RARITY = Object.freeze({
+          BRONZE: "BRONZE",
+          SILVER: "SILVER",
+          GOLD: "GOLD",
+          PLATINUM: "PLATINUM",
+        });
+        const RARITY_BY_MAX_LEVEL = Object.freeze({
+          30: RARITY.BRONZE,
+          50: RARITY.SILVER,
+          70: RARITY.GOLD,
+          90: RARITY.PLATINUM,
+        });
+        const GROWTH_COEFF_BY_RARITY = Object.freeze({
+          [RARITY.BRONZE]: 1.0,
+          [RARITY.SILVER]: 1.5,
+          [RARITY.GOLD]: 2.0,
+          [RARITY.PLATINUM]: 2.5,
+        });
+
+        const phaseInput = document.getElementById("phaseInput");
+        const directoryInput = document.getElementById("directoryInput");
+        const runFilesButton = document.getElementById("runFilesButton");
+        const runFetchButton = document.getElementById("runFetchButton");
+        const statusEl = document.getElementById("status");
+        const resultList = document.getElementById("resultList");
+        let selectedFiles = [];
+
+        const log = (message) => {
+          statusEl.textContent += `\n${message}`;
+        };
+
+        const resetLog = (message) => {
+          statusEl.textContent = message;
+        };
+
+        const normalizeName = (name) => name.replace(/^[\s\u3000]+|[\s\u3000]+$/g, "");
+
+        const getBaseMonsterName = (name) => {
+          const trimmed = normalizeName(name || "");
+          return trimmed.replace(/[\s\u3000]*[A-IＡ-Ｉ]$/g, "").trim();
+        };
+
+        const extractSuffixLetter = (name) => {
+          const trimmed = normalizeName(name || "");
+          const m = trimmed.match(/([A-IＡ-Ｉ])$/);
+          if (!m) return null;
+          return String.fromCharCode(m[1].charCodeAt(0) & 0xffdf);
+        };
+
+        const getVariantLabel = (value) => {
+          if (value == null) return "";
+          if (value === 0) return "原";
+          return `亜${value}`;
+        };
+
+        const getRarity = (maxLevel) => RARITY_BY_MAX_LEVEL[maxLevel] ?? RARITY.BRONZE;
+
+        const getGrowth = (level, maxLevel, rarity) => {
+          const rc = GROWTH_COEFF_BY_RARITY[rarity] ?? 1.0;
+          const t = Math.max(0, (level - 1) / (maxLevel - 1));
+          const G = 1 + rc * t;
+          return { G, sqrtG: Math.sqrt(G) };
+        };
+
+        const estimateLv1Base = (currentTotal, bonus, isHP, level, G, sqrtG) => {
+          if (currentTotal <= 0) return 0;
+          if (level <= 1) return Math.max(1, currentTotal - bonus);
+          const factor = isHP ? sqrtG : G;
+          if (!isFinite(factor) || factor <= 0) return Math.max(1, currentTotal - bonus);
+          const approx = currentTotal / factor - bonus;
+          let best = Math.max(1, Math.floor(approx));
+          let bestDiff = Math.abs(Math.floor((best + bonus) * factor) - currentTotal);
+          let maxExact = null;
+          const start = Math.max(1, Math.floor(approx) - 50);
+          const end = Math.floor(approx) + 50;
+          for (let cand = start; cand <= end; cand += 1) {
+            const sim = Math.floor((cand + bonus) * factor);
+            const diff = Math.abs(sim - currentTotal);
+            if (sim === currentTotal) {
+              if (maxExact === null || cand > maxExact) maxExact = cand;
+              continue;
+            }
+            if (diff < bestDiff) {
+              bestDiff = diff;
+              best = cand;
+            }
+          }
+          return maxExact !== null ? maxExact : best;
+        };
+
+        const estimateLv1HpCandidates = (maxHp, level, rarityMaxLevel) => {
+          if (!Number.isFinite(maxHp) || maxHp <= 0) return new Set();
+          if (!Number.isFinite(level) || level <= 1) return new Set([maxHp]);
+          if (!Number.isFinite(rarityMaxLevel) || level > rarityMaxLevel) return new Set();
+          const rarity = getRarity(rarityMaxLevel);
+          const { G, sqrtG } = getGrowth(level, rarityMaxLevel, rarity);
+          const lv1Hp = estimateLv1Base(maxHp, 0, true, level, G, sqrtG);
+          return lv1Hp > 0 ? new Set([lv1Hp]) : new Set();
+        };
+
+        const hasIntersection = (left, right) => {
+          if (!left?.size || !right?.size) return false;
+          for (const value of left) {
+            if (right.has(value)) return true;
+          }
+          return false;
+        };
+
+        const unionSize = (left, right) => {
+          const merged = new Set(left || []);
+          (right || []).forEach((value) => merged.add(value));
+          return merged.size;
+        };
+
+        const buildDupSet = (rows) => {
+          const counts = new Map();
+          rows.forEach((row) => {
+            counts.set(row.baseName, (counts.get(row.baseName) || 0) + 1);
+          });
+          const dupSet = new Set();
+          counts.forEach((count, baseName) => {
+            if (count >= 2) dupSet.add(baseName);
+          });
+          return dupSet;
+        };
+
+        const ensureMonster = (map, name, suffix) => {
+          const key = `${name}__${suffix || ""}`;
+          if (!map.has(key)) {
+            map.set(key, {
+              name,
+              suffix,
+              variant: null,
+              level: null,
+              rarityMaxLevel: null,
+              maxHp: null,
+              lv1HpCandidates: new Set(),
+              imageUrl: null,
+              p0Skills: new Set(),
+              actionSkills: new Set(),
+            });
+          }
+          return map.get(key);
+        };
+
+        const addSkill = (map, name, suffix, variant, rarityMaxLevel, skill, isP0, imageUrl) => {
+          if (!skill) return;
+          const m = ensureMonster(map, name, suffix);
+          if (variant != null && m.variant == null) m.variant = variant;
+          if (rarityMaxLevel != null && m.rarityMaxLevel == null) {
+            m.rarityMaxLevel = rarityMaxLevel;
+            m.lv1HpCandidates = estimateLv1HpCandidates(m.maxHp, m.level, m.rarityMaxLevel);
+          }
+          if (m.imageUrl == null && imageUrl) m.imageUrl = imageUrl;
+          if (isP0) {
+            m.p0Skills.add(skill);
+          } else {
+            m.actionSkills.add(skill);
+          }
+        };
+
+        const getRowsFromInfo = (info) =>
+          info.order
+            .map((name) => info.map.get(name))
+            .filter(Boolean)
+            .map((m) => ({
+              rawName: m.name,
+              baseName: getBaseMonsterName(m.name),
+              level: m.level,
+              maxHp: m.maxHp,
+            }));
+
+        const convertSkillOrderInfo = (info, dupSet, maxTurn) => {
+          const map = new Map();
+          info.order.forEach((rawName) => {
+            const source = info.map.get(rawName);
+            if (!source) return;
+            const baseName = getBaseMonsterName(source.name);
+            const suffix = extractSuffixLetter(source.name);
+            const name = dupSet.has(baseName) ? baseName : source.name;
+            const useSuffix = dupSet.has(baseName) ? suffix : null;
+            const target = ensureMonster(map, name, useSuffix);
+            if (source.level != null) target.level = source.level;
+            if (source.maxHp != null) {
+              target.maxHp = source.maxHp;
+              target.lv1HpCandidates = estimateLv1HpCandidates(
+                target.maxHp,
+                target.level,
+                target.rarityMaxLevel
+              );
+            }
+
+            const p0Details =
+              source.turnDetails?.[0] || (source.turns?.[0] || []).map((skill) => ({ skill }));
+            p0Details.forEach((detail) => {
+              addSkill(map, name, useSuffix, null, null, detail.skill, true, null);
+            });
+
+            for (let turn = 1; turn <= maxTurn; turn += 1) {
+              const details =
+                source.turnDetails?.[turn] ||
+                (source.turns?.[turn] || []).map((skill) => ({ skill }));
+              details.forEach((detail) => {
+                addSkill(
+                  map,
+                  name,
+                  useSuffix,
+                  detail.variant ?? null,
+                  detail.rarityMaxLevel ?? null,
+                  detail.skill,
+                  false,
+                  detail.imageUrl || null
+                );
+              });
+            }
+          });
+          return map;
+        };
+
+        const parseBattle = (html) => {
+          const api = window.ElderSignSkillOrder;
+          if (!api) throw new Error("skill_order.js が読み込まれていません。");
+          const parsed = api.parseBattleHtml(html);
+          const leftRows = getRowsFromInfo(parsed.leftInfo);
+          const rightRows = getRowsFromInfo(parsed.rightInfo);
+          const dupSet = buildDupSet([...leftRows, ...rightRows]);
+          return {
+            leftMap: convertSkillOrderInfo(parsed.leftInfo, dupSet, parsed.maxTurn),
+            rightMap: convertSkillOrderInfo(parsed.rightInfo, dupSet, parsed.maxTurn),
+          };
+        };
+
+        const extractBattleOutcome = (html) => {
+          const doc = new DOMParser().parseFromString(html, "text/html");
+          const title = normalizeName(
+            doc.querySelector("section.btl header.btl h1")?.textContent || ""
+          );
+          const parts = title.split(/\s+vs\s+/i).map((part) => normalizeName(part));
+          const h1s = Array.from(doc.querySelectorAll("section.btl h1, h1"));
+          for (const h1 of h1s) {
+            const text = normalizeName(h1.textContent || "");
+            const match = text.match(/^WINNER\s+(.+)$/i);
+            if (!match) continue;
+            const winner = normalizeName(match[1]);
+            if (parts.length >= 2) {
+              if (winner === parts[0]) return { winner, side: "battleLeft" };
+              if (winner === parts[1]) return { winner, side: "battleRight" };
+            }
+            return { winner, side: "" };
+          }
+          return { winner: "", side: "" };
+        };
+
+        const ensurePlayer = (results, name) => {
+          if (!results.has(name)) results.set(name, new Map());
+          return results.get(name);
+        };
+
+        const isSameInstance = (instance, incoming, matchIndex) => {
+          if (
+            matchIndex === instance.lastSeen &&
+            instance.suffix &&
+            incoming.suffix &&
+            instance.suffix !== incoming.suffix
+          ) {
+            return false;
+          }
+          if (
+            instance.variant != null &&
+            incoming.variant != null &&
+            instance.variant !== incoming.variant
+          ) {
+            return false;
+          }
+          if (unionSize(instance.actionSkills, incoming.actionSkills) > MAX_SKILL_COUNT) {
+            return false;
+          }
+          const hasHpInfo = instance.lv1HpCandidates?.size && incoming.lv1HpCandidates?.size;
+          if (hasHpInfo) return hasIntersection(instance.lv1HpCandidates, incoming.lv1HpCandidates);
+          return true;
+        };
+
+        const mergePlayerMap = (results, playerName, map, matchIndex, matchKey) => {
+          const player = ensurePlayer(results, playerName);
+          map.forEach((m) => {
+            const key = m.name;
+            if (!player.has(key)) player.set(key, []);
+            const instances = player.get(key);
+            const incoming = {
+              name: m.name,
+              suffix: m.suffix,
+              variant: m.variant,
+              level: m.level ?? null,
+              rarityMaxLevel: m.rarityMaxLevel ?? null,
+              maxHp: m.maxHp ?? null,
+              lv1HpCandidates: new Set(m.lv1HpCandidates || []),
+              imageUrl: m.imageUrl || null,
+              p0Skills: new Set(m.p0Skills),
+              actionSkills: new Set(m.actionSkills),
+              lastLevel: m.level ?? null,
+              lastSeen: matchIndex,
+              matchKey,
+            };
+
+            let merged = false;
+            for (const inst of instances) {
+              if (!isSameInstance(inst, incoming, matchIndex)) continue;
+              incoming.p0Skills.forEach((skill) => inst.p0Skills.add(skill));
+              incoming.actionSkills.forEach((skill) => inst.actionSkills.add(skill));
+              if (!inst.matchKeys) inst.matchKeys = new Set();
+              if (incoming.matchKey) inst.matchKeys.add(incoming.matchKey);
+              if (incoming.level != null) {
+                inst.maxLevel =
+                  inst.maxLevel == null ? incoming.level : Math.max(inst.maxLevel, incoming.level);
+                inst.lastLevel = incoming.level;
+              }
+              if (incoming.variant != null) inst.variant = incoming.variant;
+              if (incoming.rarityMaxLevel != null) inst.rarityMaxLevel = incoming.rarityMaxLevel;
+              if (incoming.maxHp != null) inst.maxHp = incoming.maxHp;
+              incoming.lv1HpCandidates.forEach((hp) => inst.lv1HpCandidates.add(hp));
+              if (incoming.imageUrl && !inst.imageUrl) inst.imageUrl = incoming.imageUrl;
+              inst.lastSeen = matchIndex;
+              merged = true;
+              break;
+            }
+
+            if (!merged) {
+              instances.push({
+                name: m.name,
+                suffix: m.suffix,
+                variant: m.variant,
+                rarityMaxLevel: incoming.rarityMaxLevel,
+                maxHp: incoming.maxHp,
+                lv1HpCandidates: new Set(incoming.lv1HpCandidates),
+                imageUrl: incoming.imageUrl,
+                p0Skills: new Set(incoming.p0Skills),
+                actionSkills: new Set(incoming.actionSkills),
+                maxLevel: incoming.level ?? null,
+                lastLevel: incoming.level ?? null,
+                lastSeen: matchIndex,
+                matchKeys: incoming.matchKey ? new Set([incoming.matchKey]) : new Set(),
+              });
+            }
+          });
+        };
+
+        const csvEscape = (value) => {
+          const text = value == null ? "" : String(value);
+          if (/[",\n]/.test(text)) return `"${text.replace(/"/g, '""')}"`;
+          return text;
+        };
+
+        const rowsToCsv = (rows) => rows.map((row) => row.map(csvEscape).join(",")).join("\n");
+
+        const buildCsv = (manifest, htmlByKey) => {
+          const matches = Object.entries(manifest.matches || {}).map(([key, entry]) => ({
+            key,
+            ...entry,
+          }));
+          const nameByLetter = new Map();
+          const letterByName = new Map();
+          const memberOrder = [];
+          const winCountByName = new Map();
+          const drawCountByName = new Map();
+          const wonOpponentsByName = new Map();
+          matches.forEach((match) => {
+            [
+              [match.leftLetter, match.leftName],
+              [match.rightLetter, match.rightName],
+            ].forEach(([letter, name]) => {
+              if (!letter || !name) return;
+              if (!nameByLetter.has(letter)) nameByLetter.set(letter, name);
+              if (!letterByName.has(name)) letterByName.set(name, letter);
+              if (!memberOrder.includes(name)) memberOrder.push(name);
+              if (!winCountByName.has(name)) winCountByName.set(name, 0);
+              if (!drawCountByName.has(name)) drawCountByName.set(name, 0);
+              if (!wonOpponentsByName.has(name)) wonOpponentsByName.set(name, []);
+            });
+          });
+
+          const results = new Map();
+          const errors = [];
+          matches.forEach((match, index) => {
+            try {
+              const html = htmlByKey.get(match.key);
+              if (!html) throw new Error("HTMLなし");
+              const outcome = extractBattleOutcome(html);
+              const leftPlayer = nameByLetter.get(match.leftLetter) || match.leftName || "";
+              const rightPlayer = nameByLetter.get(match.rightLetter) || match.rightName || "";
+              let winnerPlayer = "";
+              let loserPlayer = "";
+              if (outcome.side === "battleLeft") {
+                winnerPlayer = rightPlayer;
+                loserPlayer = leftPlayer;
+              } else if (outcome.side === "battleRight") {
+                winnerPlayer = leftPlayer;
+                loserPlayer = rightPlayer;
+              }
+              if (winnerPlayer) {
+                const current = winCountByName.get(winnerPlayer) || 0;
+                winCountByName.set(winnerPlayer, current + 1);
+                if (loserPlayer) {
+                  if (!wonOpponentsByName.has(winnerPlayer)) {
+                    wonOpponentsByName.set(winnerPlayer, []);
+                  }
+                  wonOpponentsByName.get(winnerPlayer).push(loserPlayer);
+                }
+              } else {
+                if (leftPlayer) {
+                  drawCountByName.set(leftPlayer, (drawCountByName.get(leftPlayer) || 0) + 1);
+                }
+                if (rightPlayer) {
+                  drawCountByName.set(rightPlayer, (drawCountByName.get(rightPlayer) || 0) + 1);
+                }
+              }
+              const parsed = parseBattle(html);
+              const leftKey = leftPlayer || match.leftLetter;
+              const rightKey = rightPlayer || match.rightLetter;
+              mergePlayerMap(results, rightKey, parsed.leftMap, index, match.key);
+              mergePlayerMap(results, leftKey, parsed.rightMap, index, match.key);
+            } catch (err) {
+              errors.push(`${match.key}: ${err.message}`);
+            }
+          });
+
+          const matchHeaders = [];
+          for (let i = 1; i <= 11; i += 1) {
+            matchHeaders.push(`match${String(i).padStart(2, "0")}`);
+          }
+          const rows = [
+            [
+              "player",
+              "letter",
+              "出場回数",
+              "monster",
+              "level",
+              "variant",
+              "image",
+              "A(アクティブ)",
+              "P(コンパニオン)",
+              ...matchHeaders,
+            ],
+          ];
+          const playerNames = memberOrder.slice();
+          Array.from(results.keys()).forEach((name) => {
+            if (!playerNames.includes(name)) playerNames.push(name);
+          });
+          const standings = playerNames
+            .map((name) => ({
+              name,
+              letter: letterByName.get(name) || "",
+              wins: winCountByName.get(name) || 0,
+              draws: drawCountByName.get(name) || 0,
+              opponentWinScore: (wonOpponentsByName.get(name) || []).reduce(
+                (sum, opponentName) => sum + (winCountByName.get(opponentName) || 0),
+                0
+              ),
+            }))
+            .sort((a, b) => {
+              const winDiff = b.wins - a.wins;
+              if (winDiff !== 0) return winDiff;
+              const drawDiff = b.draws - a.draws;
+              if (drawDiff !== 0) return drawDiff;
+              const scoreDiff = b.opponentWinScore - a.opponentWinScore;
+              if (scoreDiff !== 0) return scoreDiff;
+              return a.letter.localeCompare(b.letter, "ja");
+            });
+
+          standings.forEach((standing) => {
+            const playerName = standing.name;
+            const monsters = results.get(playerName);
+            if (!monsters) return;
+            Array.from(monsters.entries()).forEach(([monsterName, instances]) => {
+              const sorted = instances.slice().sort((a, b) => {
+                const aLabel = a.variant ?? -1;
+                const bLabel = b.variant ?? -1;
+                return aLabel - bLabel;
+              });
+              sorted.forEach((monster, index) => {
+                const displayName =
+                  sorted.length > 1 ? `${monsterName} (${index + 1})` : monsterName;
+                const level = monster.maxLevel != null ? monster.maxLevel : "";
+                const variantLabel = getVariantLabel(monster.variant);
+                const p0 = Array.from(monster.p0Skills).sort().join(" / ");
+                const action = Array.from(monster.actionSkills).sort().join(" / ");
+                const matchKeyList = Array.from(monster.matchKeys || []);
+                const matchColumns = [];
+                for (let i = 0; i < 11; i += 1) {
+                  matchColumns.push(matchKeyList[i] || "");
+                }
+                rows.push([
+                  playerName,
+                  standing.letter,
+                  matchKeyList.length,
+                  displayName,
+                  level,
+                  variantLabel,
+                  monster.imageUrl || "",
+                  action,
+                  p0,
+                  ...matchColumns,
+                ]);
+              });
+            });
+          });
+
+          return { csv: rowsToCsv(rows) + "\n", rowCount: rows.length - 1, errors, standings };
+        };
+
+        const getSelectedGroups = () =>
+          Array.from(document.querySelectorAll(".groupInput:checked"))
+            .map((input) => input.value)
+            .filter((value) => GROUP_ORDER.includes(value));
+
+        const readFileText = (file) =>
+          new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result || ""));
+            reader.onerror = () => reject(reader.error || new Error("ファイル読み込み失敗"));
+            reader.readAsText(file);
+          });
+
+        const normalizePath = (file) => (file.webkitRelativePath || file.name).replace(/\\/g, "/");
+
+        const findSelectedFile = (files, phase, group, relativePath) => {
+          const normalizedRelativePath = String(relativePath || "").replace(/^\.\//, "");
+          const suffixes = [
+            `${phase}/${group}/${normalizedRelativePath}`,
+            `${group}/${normalizedRelativePath}`,
+          ];
+          return files.find((file) => {
+            const path = normalizePath(file);
+            return suffixes.some((suffix) => path.endsWith(suffix));
+          });
+        };
+
+        const addDownload = (phase, group, csv, rowCount, errors) => {
+          const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+          const url = URL.createObjectURL(blob);
+          const row = document.createElement("div");
+          row.className = "result-row";
+          const text = document.createElement("span");
+          text.textContent = `${group}: ${rowCount}行 / エラー ${errors.length}件`;
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `skill_list_${phase}_${group}.csv`;
+          link.textContent = "CSVダウンロード";
+          row.append(text, link);
+          resultList.appendChild(row);
+        };
+
+        const runWithReaders = async (phase, groups, readManifest, readMatchHtml) => {
+          resultList.innerHTML = "";
+          for (const group of groups) {
+            log(`${group}: 読み込み開始`);
+            const manifest = await readManifest(group);
+            const htmlByKey = new Map();
+            const entries = Object.entries(manifest.matches || {});
+            for (const [key, entry] of entries) {
+              const html = await readMatchHtml(group, key, entry);
+              htmlByKey.set(key, html);
+            }
+            const result = buildCsv(manifest, htmlByKey);
+            addDownload(phase, group, result.csv, result.rowCount, result.errors);
+            log(`${group}: ${entries.length}試合 / ${result.rowCount}行 / エラー ${result.errors.length}件`);
+            log(
+              `${group}: 順位 ${result.standings
+                .map(
+                  (row) =>
+                    `${row.letter}:${row.name} ${row.wins}勝${row.draws}分 ${row.opponentWinScore}点`
+                )
+                .join(" / ")}`
+            );
+            if (result.errors.length) {
+              result.errors.slice(0, 10).forEach((err) => log(`  ${err}`));
+              if (result.errors.length > 10) log(`  ...他 ${result.errors.length - 10}件`);
+            }
+          }
+          log("完了");
+        };
+
+        directoryInput.addEventListener("change", () => {
+          selectedFiles = Array.from(directoryInput.files || []);
+          runFilesButton.disabled = !selectedFiles.length;
+          resetLog(selectedFiles.length ? `${selectedFiles.length}ファイルを選択` : "待機中");
+        });
+
+        runFilesButton.addEventListener("click", async () => {
+          const phase = String(Number(phaseInput.value || 25));
+          const groups = getSelectedGroups();
+          resetLog("選択ファイルから生成");
+          try {
+            await runWithReaders(
+              phase,
+              groups,
+              async (group) => {
+                const file = findSelectedFile(selectedFiles, phase, group, "manifest.json");
+                if (!file) throw new Error(`${group}/manifest.json が見つかりません。`);
+                return JSON.parse(await readFileText(file));
+              },
+              async (group, key, entry) => {
+                const relative = String(entry.html || `./matches/${key}.html`).replace(/^\.\//, "");
+                const file = findSelectedFile(selectedFiles, phase, group, relative);
+                if (!file) throw new Error(`${group}/${relative} が見つかりません。`);
+                return readFileText(file);
+              }
+            );
+          } catch (err) {
+            log(`エラー: ${err.message}`);
+          }
+        });
+
+        runFetchButton.addEventListener("click", async () => {
+          const phase = String(Number(phaseInput.value || 25));
+          const groups = getSelectedGroups();
+          resetLog("data フォルダから生成");
+          try {
+            await runWithReaders(
+              phase,
+              groups,
+              async (group) => {
+                const response = await fetch(`./data/${phase}/${group}/manifest.json`, {
+                  cache: "no-store",
+                });
+                if (!response.ok) throw new Error(`${group}/manifest.json: HTTP ${response.status}`);
+                return response.json();
+              },
+              async (group, key, entry) => {
+                const relative = String(entry.html || `./matches/${key}.html`).replace(/^\.\//, "");
+                const response = await fetch(`./data/${phase}/${group}/${relative}`, {
+                  cache: "no-store",
+                });
+                if (!response.ok) throw new Error(`${group}/${relative}: HTTP ${response.status}`);
+                return response.text();
+              }
+            );
+          } catch (err) {
+            log(`エラー: ${err.message}`);
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
