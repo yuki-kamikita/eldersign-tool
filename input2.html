@@ -1,0 +1,58 @@
+<html lang="ja">
+
+<head>
+    <meta http-equiv="Content-Language" content="ja">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>モンスターカード</title>
+    <link rel="stylesheet" href="https://eldersign.jp/css/els2.css?v=8">
+    <script type="text/javascript" src="https://eldersign.jp/js/confirm.js"></script>
+
+
+</head>
+
+<body>
+    <div id="scm">
+        <nav class="shortcut"><a id="scmr" href="https://eldersign.jp/mcard_detail?mid=695093&amp;pg=1"
+                style="background-position:0 -44px;"></a><a href="https://eldersign.jp/mypage"
+                style="background-position:0 -88px;"></a><a href="https://eldersign.jp/quest"
+                style="background-position:0 -132px;"></a><a href="https://eldersign.jp/shop"
+                style="background-position:0 -176px;"></a><a href="https://eldersign.jp/menu"
+                style="background-position:0 -220px;"></a></nav>
+    </div>
+    <script
+        type="text/javascript">var ob = null; if (typeof (jsi) != 'undefined') { ob = jsi; } if (ob) { ob.setShortCut("mcard_detail?mid=695093&pg=1"); ob.setNaviMenuVisible(true); } else { document.getElementById('scm').innerHTML = '<nav class="shortcut">' + '<a id="scmr" href="https://eldersign.jp/mcard_detail?mid=695093&pg=1" style="background-position:0 -44px;"></a>' + '<a href="https://eldersign.jp/mypage" style="background-position:0 -88px;"></a><a href="https://eldersign.jp/quest" style="background-position:0 -132px;"></a><a href="https://eldersign.jp/shop" style="background-position:0 -176px;"></a><a href="https://eldersign.jp/menu" style="background-position:0 -220px;"></a></nav>' }</script>
+    <style>
+        header.page h1 {
+            background-image: url(https://eldersign.jp/img/menu/titleIcon17.png);
+        }
+    </style>
+    <header class="page">
+        <hr>
+        <h1>モンスターカード</h1>
+        <hr>
+    </header>
+    <article class="checktxt">
+        <p>売出価格(Any)を入力してください<br><small>※売上の5%は手数料として差し引かれます</small><br><small>※最低価格は50
+                Anyです</small><br><small>※空欄にすると売出を取りやめます</small><br></p>
+    </article>
+    <section class="chr">
+        <p>現在の価格:0 Any</p>
+    </section>
+    <div style="text-align:center; padding:4px">
+        <form method="post" action="javascript:chk();" onsubmit="chk(); return false;">
+            <p><input id="any" name="any" value="" maxlength="8"></p>
+        </form>
+        <script
+            type="text/javascript">function chk() { var p = document.getElementById('any').value; if (p.length > 8) p = 100000000; if (!p) p = 0; else p = parseInt(p, 10); if (isNaN(p)) p = 0; if (p > 100000000) p = 100000000; if (p == 0 && 0 == 0) document.location = "https://eldersign.jp/mcard_detail?mid=695093&pg=1"; else { if (p == 0) confirm.set(1, '出品を取り消します<br />よろしいですか？'); else confirm.set(1, 'このカードを出品します<br />よろしいですか？<br />出品額:<em>' + p + ' Any</em>'); confirm.disp(1, "https://eldersign.jp/mcard_detail?mid=695093&pg=1&cmd=s&cc=d70a7e4fb8fbc2c315ab7d07e9eb39b3&r=&any=" + p, ''); } }</script>
+        <nav class="list">
+            <ul>
+                <li class="l"><a href="javascript:chk({});">変更</a></li>
+            </ul>
+        </nav>
+        <div style="clear:both"></div>
+
+    </div>
+</body>
+
+</html>
